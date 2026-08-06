@@ -1,0 +1,124 @@
+.modal {
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--mantine-primary-color-5) 24%, transparent);
+  background: var(--mantine-color-body);
+  box-shadow:
+    0 24px 80px rgb(0 0 0 / 32%),
+    0 0 0 1px rgb(255 255 255 / 3%) inset;
+}
+
+.body {
+  padding: 0;
+}
+
+.card {
+  position: relative;
+  padding: 42px 42px 38px;
+  text-align: center;
+  isolation: isolate;
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0 0 auto;
+  height: 150px;
+  background: radial-gradient(
+    circle at 50% 0%,
+    color-mix(in srgb, var(--mantine-primary-color-6) 16%, transparent),
+    transparent 72%
+  );
+  pointer-events: none;
+}
+
+.card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 24%;
+  left: 24%;
+  height: 2px;
+  border-radius: 0 0 999px 999px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--mantine-primary-color-5),
+    transparent
+  );
+  opacity: 0.8;
+}
+
+.icon {
+  margin: 0 auto 24px;
+  color: var(--mantine-primary-color-4);
+  background: color-mix(in srgb, var(--mantine-primary-color-6) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--mantine-primary-color-5) 28%, transparent);
+  box-shadow: 0 8px 30px color-mix(in srgb, var(--mantine-primary-color-8) 22%, transparent);
+}
+
+.title {
+  margin: 0;
+  color: var(--mantine-color-text);
+  font-size: clamp(1.75rem, 4vw, 2rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.description {
+  max-width: 400px;
+  color: var(--mantine-color-dimmed);
+  font-size: var(--mantine-font-size-md);
+  line-height: 1.75;
+}
+
+.description a {
+  color: var(--mantine-primary-color-4);
+  font-weight: 600;
+  text-decoration-color: color-mix(in srgb, currentColor 55%, transparent);
+  text-underline-offset: 3px;
+}
+
+.description a:hover {
+  color: var(--mantine-primary-color-3);
+  text-decoration-color: currentColor;
+}
+
+.acceptButton {
+  height: 48px;
+  border-radius: var(--mantine-radius-md);
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--mantine-primary-color-8) 24%, transparent);
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.acceptButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 34px color-mix(in srgb, var(--mantine-primary-color-8) 32%, transparent);
+}
+
+.acceptButton:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 36em) {
+  .card {
+    padding: 34px 24px 28px;
+  }
+
+  .icon {
+    margin-bottom: 20px;
+  }
+
+  .description {
+    font-size: var(--mantine-font-size-sm);
+    line-height: 1.7;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .acceptButton {
+    transition: none;
+  }
+}

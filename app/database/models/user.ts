@@ -114,7 +114,9 @@ export class User {
         DEFINE FIELD IF NOT EXISTS referralCode ON TABLE user TYPE option<string>;
         DEFINE FIELD IF NOT EXISTS acceptedTermsOfServiceAt ON TABLE user TYPE option<datetime>;
         DEFINE FIELD IF NOT EXISTS acceptedPrivacyPolicyAt ON TABLE user TYPE option<datetime>;
-        DEFINE FIELD OVERWRITE settings ON TABLE user FLEXIBLE TYPE option<object>;
+        DEFINE FIELD OVERWRITE settings ON TABLE user TYPE option<object>;
+        DEFINE FIELD OVERWRITE settings.* ON TABLE user TYPE any;
+        DEFINE TABLE IF NOT EXISTS referred SCHEMALESS;
       `);
       await db?.query(
         `DEFINE INDEX IF NOT EXISTS userEmailIndex ON TABLE user COLUMNS email UNIQUE;`
@@ -1013,8 +1015,8 @@ export class Token {
       await db?.query(`DEFINE TABLE IF NOT EXISTS user_token SCHEMAFULL;
       DEFINE FIELD IF NOT EXISTS id ON TABLE user_token TYPE string;
       DEFINE FIELD IF NOT EXISTS value ON TABLE user_token TYPE string;
-      DEFINE FIELD IF NOT EXISTS createdAt ON TABLE user_token TYPE string;
-      DEFINE FIELD IF NOT EXISTS expiresAt ON TABLE user_token TYPE string;
+      DEFINE FIELD OVERWRITE createdAt ON TABLE user_token TYPE datetime;
+      DEFINE FIELD OVERWRITE expiresAt ON TABLE user_token TYPE datetime;
       DEFINE FIELD IF NOT EXISTS user ON TABLE user_token TYPE record<user>;
       DEFINE FIELD IF NOT EXISTS type ON TABLE user_token TYPE string;
       `);

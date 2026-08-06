@@ -1,14 +1,13 @@
 import React, { useEffect, useMemo } from "react";
-import { Group, Loader, Stack, Text, Button, Transition } from "@mantine/core";
+import { Group, Loader, Stack, Text, Transition } from "@mantine/core";
 import { getOS } from "@core/utils/platform";
 import styles from "./Search.module.scss";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import {
   BrainIcon,
   SparkleIcon,
   ArrowClockwiseIcon,
   IconProps,
-  UserIcon,
   UserCircleIcon,
 } from "@phosphor-icons/react";
 import type { ISearchResultValue, ISearchResult } from "../../../../../shared/types/search";
@@ -22,7 +21,6 @@ import PaperButton from "@core/design/components/Paper/PaperButton";
 import ScopeBuilder from "./ScopeBuilder/ScopeBuilder";
 import { SearchBar } from "./SearchBar";
 import useSearchQuery from "@domains/discovery/hooks/useSearchQuery";
-import { SpyglassIcon } from "@core/design/icons/Icons";
 import PaperSearchResult from "@core/design/components/Paper/PaperSearchResult/PaperSearchResult";
 import { getNodeDescription, getNodeLink, getNodeTitle } from "@infrastructure/graph/utils";
 import ScopeDisplay from "./ScopeBuilder/ScopeDisplay";
@@ -44,6 +42,9 @@ type ISearchProps = {
   onResultClick?: (node: INode) => void;
   onResults?: (results: ISearchResult[]) => void;
   onSearchLoading?: (loading: boolean) => void;
+  resultArtifacts?: (
+    result: ISearchResult
+  ) => { icon: React.FC<IconProps>; label: string }[] | undefined;
 };
 
 type IGlimpseViewProps = {
@@ -118,6 +119,13 @@ type IResultsViewProps = {
   resultActions?: ((value: ISearchResultValue) => ISearchResultAction)[];
   resultsHeader?: (results: ISearchResult[] | null) => React.ReactNode;
   onResultClick?: (node: INode) => void;
+  resultArtifacts?: ISearchProps["resultArtifacts"];
+};
+
+const sameResultIds = (left: ISearchResult[] | null, right: ISearchResult[] | null) => {
+  if (left === right) return true;
+  if (!left || !right || left.length !== right.length) return false;
+  return left.every((result, index) => result.id.toString() === right[index].id.toString());
 };
 
 const ResultsView = ({
@@ -128,23 +136,24 @@ const ResultsView = ({
   resultActions,
   resultsHeader,
   onResultClick,
+  resultArtifacts,
 }: IResultsViewProps) => {
   return (
     <Stack gap="xs">
       {resultsHeader && resultsHeader(results)}
       {!query.length && !results?.length && (
         <>
-          <Text size="sm" c="dark.4" fw="bold">
-            <Group gap="xs">
-              <ArrowClockwiseIcon weight="bold" />
+          <Group gap="xs">
+            <ArrowClockwiseIcon weight="bold" />
+            <Text size="sm" c="dark.4" fw="bold">
               RECENT
-              <Transition mounted={loadingRecent} transition="fade-left">
-                {(style) => {
-                  return <Loader style={style} size="xs" color="gray" />;
-                }}
-              </Transition>
-            </Group>
-          </Text>
+            </Text>
+            <Transition mounted={loadingRecent} transition="fade-left">
+              {(style) => {
+                return <Loader style={style} size="xs" color="gray" />;
+              }}
+            </Transition>
+          </Group>
 
           <Transition mounted={!!recent && recent.length > 0} transition="fade-up">
             {(style) => {
@@ -192,14 +201,15 @@ const ResultsView = ({
             onSelect={onResultClick}
             draggable
             artifacts={
-              "author" in r.value && r.value.author
+              resultArtifacts?.(r) ??
+              ("author" in r.value && r.value.author
                 ? [
                     {
                       icon: UserCircleIcon,
                       label: `${r.value.author.firstName} ${r.value.author.lastName}`.trim(),
                     },
                   ]
-                : undefined
+                : undefined)
             }
           />
         );
@@ -216,6 +226,7 @@ export default function Search({
   onResultClick,
   onResults,
   onSearchLoading,
+  resultArtifacts,
 }: ISearchProps) {
   const os = getOS();
   const ctrl = os !== "macos";
@@ -223,7 +234,7 @@ export default function Search({
 
   const {
     global: {
-      results: { set: setGlobalResults },
+      results: { get: globalResults, set: setGlobalResults },
       topResult: { set: setGlobalTopResult },
     },
   } = useSearch();
@@ -262,12 +273,9 @@ export default function Search({
   }, [resultsMap]);
 
   useEffect(() => {
-    if (glimpseMode) {
-      setGlobalResults(glimpseResultsArray);
-    } else {
-      setGlobalResults(filteredResults);
-    }
-  }, [glimpseMode, glimpseResultsArray, filteredResults, setGlobalResults]);
+    const visibleResults = glimpseMode ? glimpseResultsArray : filteredResults;
+    if (!sameResultIds(globalResults, visibleResults)) setGlobalResults(visibleResults);
+  }, [glimpseMode, glimpseResultsArray, filteredResults, globalResults, setGlobalResults]);
 
   useEffect(() => {
     if (glimpseMode) {
@@ -366,6 +374,7 @@ export default function Search({
           resultActions={resultActions}
           resultsHeader={resultsHeader}
           onResultClick={handleResultClick}
+          resultArtifacts={resultArtifacts}
         />
       )}
     </div>

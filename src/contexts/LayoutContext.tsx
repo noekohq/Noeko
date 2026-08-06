@@ -8,6 +8,7 @@ import React, {
   ComponentType,
   useRef,
   useCallback,
+  useMemo,
 } from "react";
 import { useMediaQuery } from "@mantine/hooks";
 
@@ -66,17 +67,31 @@ type ILayoutContext = {
       setIsVisible: (isVisible: boolean) => void;
     };
   };
-  scroll: {
-    isScrolled: boolean;
-    scrollDirection: "up" | "down";
-    setScrollableElement: Dispatch<SetStateAction<HTMLElement | null>>;
-    check: () => void;
-  };
   isMobile: boolean;
   isTablet: boolean;
   isDesktop: boolean;
   isWideScreen: boolean;
   isUltraWide: boolean;
+};
+
+type ILayoutScrollContext = {
+  isScrolled: boolean;
+  scrollDirection: "up" | "down";
+  check: () => void;
+};
+
+type ILayoutScrollRegistrationContext = {
+  setScrollableElement: Dispatch<SetStateAction<HTMLElement | null>>;
+};
+
+type ILayoutViewportContext = Pick<
+  ILayoutContext,
+  "isMobile" | "isTablet" | "isDesktop" | "isWideScreen" | "isUltraWide"
+>;
+
+type ILayoutSidebarActionsContext = {
+  setLeftSidebarMode: (mode: ISidebarMode) => void;
+  setRightSidebarMode: (mode: ISidebarMode) => void;
 };
 
 const initialLayoutContext: ILayoutContext = {
@@ -131,12 +146,6 @@ const initialLayoutContext: ILayoutContext = {
       setIsVisible: () => {},
     },
   },
-  scroll: {
-    isScrolled: false,
-    scrollDirection: "up",
-    setScrollableElement: () => {},
-    check: () => {},
-  },
   isMobile: false,
   isTablet: false,
   isDesktop: false,
@@ -145,6 +154,25 @@ const initialLayoutContext: ILayoutContext = {
 };
 
 const LayoutContext = createContext<ILayoutContext>(initialLayoutContext);
+const LayoutScrollContext = createContext<ILayoutScrollContext>({
+  isScrolled: false,
+  scrollDirection: "up",
+  check: () => {},
+});
+const LayoutScrollRegistrationContext = createContext<ILayoutScrollRegistrationContext>({
+  setScrollableElement: () => {},
+});
+const LayoutViewportContext = createContext<ILayoutViewportContext>({
+  isMobile: false,
+  isTablet: false,
+  isDesktop: false,
+  isWideScreen: false,
+  isUltraWide: false,
+});
+const LayoutSidebarActionsContext = createContext<ILayoutSidebarActionsContext>({
+  setLeftSidebarMode: () => {},
+  setRightSidebarMode: () => {},
+});
 
 const getInitialSidebarState = (key: string, defaultValue: boolean): boolean => {
   if (typeof window === "undefined") {
@@ -208,7 +236,7 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
     return () => {
       scrollableElement.removeEventListener("scroll", handleScroll);
     };
-  }, [scrollableElement]);
+  }, [scrollableElement, handleScroll]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -248,7 +276,7 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
         }
       }
     }
-  }, [leftSidebarMode]);
+  }, [isMobile, isTablet, leftSidebarMode, rightSidebarMode]);
 
   useEffect(() => {
     if (isMobile || isTablet) {
@@ -258,127 +286,176 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
         }
       }
     }
-  }, [rightSidebarMode]);
+  }, [isMobile, isTablet, leftSidebarMode, rightSidebarMode]);
 
-  const contextValue: ILayoutContext = {
-    elements: {
-      leftSidebar: {
-        mode: {
-          get: leftSidebarMode,
-          set: setLeftSidebarMode,
-          toggle: () => {
-            setLeftSidebarMode((prev) => {
-              if (prev === "open") {
+  const contextValue = useMemo<ILayoutContext>(
+    () => ({
+      elements: {
+        leftSidebar: {
+          mode: {
+            get: leftSidebarMode,
+            set: setLeftSidebarMode,
+            toggle: () => {
+              setLeftSidebarMode((prev) => {
+                if (prev === "open") {
+                  return "collapsed";
+                } else {
+                  return "open";
+                }
+              });
+            },
+            toggleAll: () => {
+              setLeftSidebarMode((prev) => {
+                if (prev === "open") {
+                  return "compact";
+                } else if (prev === "collapsed") {
+                  return "open";
+                }
                 return "collapsed";
-              } else {
-                return "open";
-              }
-            });
+              });
+            },
           },
-          toggleAll: () => {
-            setLeftSidebarMode((prev) => {
-              if (prev === "open") {
-                return "compact";
-              } else if (prev === "collapsed") {
-                return "open";
-              }
-              return "collapsed";
-            });
+          content: {
+            hasContent: leftSidebarHasContent,
+            setHasContent: setLeftSidebarHasContent,
           },
         },
-        content: {
-          hasContent: leftSidebarHasContent,
-          setHasContent: setLeftSidebarHasContent,
-        },
-      },
-      rightSidebar: {
-        mode: {
-          get: rightSidebarMode,
-          set: setRightSidebarMode,
-          toggle: () => {
-            setRightSidebarMode((prev) => {
-              if (prev === "open") {
+        rightSidebar: {
+          mode: {
+            get: rightSidebarMode,
+            set: setRightSidebarMode,
+            toggle: () => {
+              setRightSidebarMode((prev) => {
+                if (prev === "open") {
+                  return "collapsed";
+                } else {
+                  return "open";
+                }
+              });
+            },
+            toggleAll: () => {
+              setRightSidebarMode((prev) => {
+                if (prev === "open") {
+                  return "compact";
+                } else if (prev === "collapsed") {
+                  return "open";
+                }
                 return "collapsed";
-              } else {
-                return "open";
-              }
-            });
+              });
+            },
           },
-          toggleAll: () => {
-            setRightSidebarMode((prev) => {
-              if (prev === "open") {
-                return "compact";
-              } else if (prev === "collapsed") {
-                return "open";
-              }
-              return "collapsed";
-            });
+          content: {
+            hasContent: rightSidebarHasContent,
+            setHasContent: setRightSidebarHasContent,
           },
         },
-        content: {
-          hasContent: rightSidebarHasContent,
-          setHasContent: setRightSidebarHasContent,
-        },
-      },
-      statusBar: {
-        mode: {
-          get: statusBarMode,
-          set: setStatusbarMode,
-          toggle: () => {
-            setStatusbarMode((prev) => {
-              if (prev === "showing") {
+        statusBar: {
+          mode: {
+            get: statusBarMode,
+            set: setStatusbarMode,
+            toggle: () => {
+              setStatusbarMode((prev) => {
+                if (prev === "showing") {
+                  return "hidden";
+                } else {
+                  return "showing";
+                }
+              });
+            },
+            toggleAll: () => {
+              setStatusbarMode((prev) => {
+                if (prev === "showing") {
+                  return "hidden";
+                } else if (prev === "hidden") {
+                  return "showing";
+                }
                 return "hidden";
-              } else {
-                return "showing";
-              }
-            });
+              });
+            },
           },
-          toggleAll: () => {
-            setStatusbarMode((prev) => {
-              if (prev === "showing") {
-                return "hidden";
-              } else if (prev === "hidden") {
-                return "showing";
-              }
-              return "hidden";
-            });
+          message: {
+            get: statusBarMessage,
+            set: setStatusbarMessage,
           },
         },
-        message: {
-          get: statusBarMessage,
-          set: setStatusbarMessage,
+        nav: {
+          drawer: {
+            isOpen: navDrawerIsOpen,
+            setIsOpen: setNavDrawerIsOpen,
+            toggle: () => setNavDrawerIsOpen((prev) => !prev),
+            hasContent: navDrawerHasContent,
+            setHasContent: setNavDrawerHasContent,
+          },
+        },
+        mobileEditorToolbar: {
+          isVisible: mobileEditorToolbarVisible,
+          setIsVisible: setMobileEditorToolbarVisible,
         },
       },
-      nav: {
-        drawer: {
-          isOpen: navDrawerIsOpen,
-          setIsOpen: setNavDrawerIsOpen,
-          toggle: () => setNavDrawerIsOpen((prev) => !prev),
-          hasContent: navDrawerHasContent,
-          setHasContent: setNavDrawerHasContent,
-        },
-      },
-      mobileEditorToolbar: {
-        isVisible: mobileEditorToolbarVisible,
-        setIsVisible: setMobileEditorToolbarVisible,
-      },
-    },
-    scroll: {
-      isScrolled: isScrolled,
-      scrollDirection: scrollDirection,
-      setScrollableElement: setScrollableElement,
-      check: () => {
-        handleScroll();
-      },
-    },
-    isMobile,
-    isTablet,
-    isDesktop,
-    isWideScreen,
-    isUltraWide,
-  };
+      isMobile,
+      isTablet,
+      isDesktop,
+      isWideScreen,
+      isUltraWide,
+    }),
+    [
+      leftSidebarMode,
+      leftSidebarHasContent,
+      rightSidebarMode,
+      rightSidebarHasContent,
+      statusBarMode,
+      statusBarMessage,
+      navDrawerIsOpen,
+      navDrawerHasContent,
+      mobileEditorToolbarVisible,
+      isMobile,
+      isTablet,
+      isDesktop,
+      isWideScreen,
+      isUltraWide,
+    ]
+  );
 
-  return <LayoutContext.Provider value={contextValue}>{children}</LayoutContext.Provider>;
+  const scrollValue = useMemo<ILayoutScrollContext>(
+    () => ({
+      isScrolled,
+      scrollDirection,
+      check: handleScroll,
+    }),
+    [isScrolled, scrollDirection, handleScroll]
+  );
+
+  const viewportValue = useMemo<ILayoutViewportContext>(
+    () => ({ isMobile, isTablet, isDesktop, isWideScreen, isUltraWide }),
+    [isMobile, isTablet, isDesktop, isWideScreen, isUltraWide]
+  );
+
+  const sidebarActionsValue = useMemo<ILayoutSidebarActionsContext>(
+    () => ({ setLeftSidebarMode, setRightSidebarMode }),
+    []
+  );
+  const scrollRegistrationValue = useMemo<ILayoutScrollRegistrationContext>(
+    () => ({ setScrollableElement }),
+    []
+  );
+
+  return (
+    <LayoutContext.Provider value={contextValue}>
+      <LayoutViewportContext.Provider value={viewportValue}>
+        <LayoutSidebarActionsContext.Provider value={sidebarActionsValue}>
+          <LayoutScrollRegistrationContext.Provider value={scrollRegistrationValue}>
+            <LayoutScrollContext.Provider value={scrollValue}>
+              {children}
+            </LayoutScrollContext.Provider>
+          </LayoutScrollRegistrationContext.Provider>
+        </LayoutSidebarActionsContext.Provider>
+      </LayoutViewportContext.Provider>
+    </LayoutContext.Provider>
+  );
 };
 
 export const useLayout = () => useContext(LayoutContext);
+export const useLayoutScroll = () => useContext(LayoutScrollContext);
+export const useLayoutScrollRegistration = () => useContext(LayoutScrollRegistrationContext);
+export const useLayoutViewport = () => useContext(LayoutViewportContext);
+export const useLayoutSidebarActions = () => useContext(LayoutSidebarActionsContext);

@@ -1,4 +1,4 @@
-@use '@core/design/styles/mixins.scss' as *;
+@use "@core/design/styles/mixins.scss" as *;
 
 @keyframes panelIn {
   from {
@@ -13,6 +13,9 @@
 
 .graphPanel {
   position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-sm);
   background-color: var(--mantine-color-dark-8);
   box-shadow: var(--mantine-shadow-xl);
   padding: 14px;

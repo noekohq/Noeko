@@ -7,7 +7,7 @@ import {
   SidebarIcon,
   SidebarSimpleIcon,
 } from "@phosphor-icons/react";
-import { useLayout } from "@/contexts/LayoutContext";
+import { useLayout, useLayoutScroll } from "@/contexts/LayoutContext";
 import ProfileButton from "@core/design/components/Interactions/ProfileButton";
 import { useLocation } from "react-router";
 import { useInteraction } from "@/contexts/InteractionContext";
@@ -26,8 +26,8 @@ export default function MobileBar() {
         content: { hasContent: rightHasContent },
       },
     },
-    scroll: { isScrolled, scrollDirection },
   } = useLayout();
+  const { isScrolled, scrollDirection } = useLayoutScroll();
   const { user } = useAuth();
 
   const leftModeToClass: Record<typeof leftMode, string> = {

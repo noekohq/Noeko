@@ -4,6 +4,7 @@ import { userInitials, userIsSuperuser } from "@domains/identity/utils/user";
 import { useNavigate } from "react-router";
 import {
   ArrowLineLeftIcon,
+  BuildingsIcon,
   CheckIcon,
   FileIcon,
   GearIcon,
@@ -37,6 +38,7 @@ export default function ProfileButton() {
     { label: "Home", icon: HouseSimpleIcon, path: "/" },
     { label: "Everything", icon: ShapesIcon, path: "/all" },
     { label: "Sharing", icon: LightbulbIcon, path: "/sharing" },
+    { label: "Organizations", icon: BuildingsIcon, path: "/organizations" },
     { label: "Quests", icon: CheckIcon, path: "/quests" },
     { label: "Sources", icon: FileIcon, path: "/sources" },
     { label: "Rabbitholes", icon: RabbitIcon, path: "/rabbitholes" },
@@ -76,7 +78,7 @@ export default function ProfileButton() {
       <Menu.Target>
         <div className={styles.buttonWrapper} ref={profileRef}>
           <Avatar
-            color={isSuperuser ? "red" : "blue"}
+            color={isSuperuser ? "red.8" : "blue.8"}
             variant="filled"
             radius="xl"
             style={{ cursor: "pointer" }}

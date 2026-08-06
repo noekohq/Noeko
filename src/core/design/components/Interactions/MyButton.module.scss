@@ -1,4 +1,4 @@
-@use '@core/design/styles/mixins.scss' as *;
+@use "@core/design/styles/mixins.scss" as *;
 
 .myButton {
   position: relative;
@@ -19,6 +19,10 @@
     color: var(--mantine-color-dark-9);
     z-index: var(--z-index-my-button);
 
+    .iconContainer {
+      color: currentColor;
+    }
+
     .userIcon {
       transform: translateY(-100%);
     }
@@ -27,9 +31,20 @@
     }
   }
 
+  &.opened:not(.portaledClose) {
+    visibility: hidden;
+  }
+
   &:hover {
     background-color: var(--mantine-color-dark-7);
   }
+}
+
+.portaledClose {
+  position: fixed;
+  right: calc(var(--layout-spacing) + var(--mantine-spacing-sm));
+  bottom: calc(var(--nav-bottom) + 6px);
+  z-index: var(--z-index-my-button);
 }
 
 .iconContainer {
@@ -61,17 +76,16 @@
   }
   100% {
     opacity: 1;
-    backdrop-filter: blur(4px) brightness(0.7);
   }
 }
 
 .overlay {
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  top: 0;
+  inset: 0;
   z-index: var(--z-index-top-bar);
+  background-color: rgb(0 0 0 / 72%);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   animation: overlayIn 0.1s ease-in-out forwards;
 }
 

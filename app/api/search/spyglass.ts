@@ -50,7 +50,7 @@ router.post("/runs", checkToken, async (req, res) => {
       });
       return;
     }
-    const { query, scope, rabbithole, tags, date, history } = validationResult.data;
+    const { query, scope, deepAnalysis, rabbithole, tags, date, history } = validationResult.data;
     const scopeAccess = await checkScopeAccess(user.id.toString(), scope);
     if (!scopeAccess.allowed) {
       res.status(scopeAccess.status).json({ error: scopeAccess.error });
@@ -60,13 +60,17 @@ router.post("/runs", checkToken, async (req, res) => {
     const run = await SpyglassRunModel.create({
       userId: user.id.toString(),
       query,
+      profile: deepAnalysis ? "deep_focus" : "glimpse",
       configuration: { scope, rabbithole, tags, date, history },
     });
     spyglassRunWorker.dispatch(run.id);
-    res.status(202).json({ message: "Deep Focus run queued.", data: run });
+    res.status(202).json({
+      message: deepAnalysis ? "Deep Focus run queued." : "Glimpse run queued.",
+      data: run,
+    });
   } catch (error) {
-    logger.error("Unable to queue Deep Focus run", { error });
-    res.status(500).json({ error: "Unable to queue Deep Focus run." });
+    logger.error("Unable to queue Spyglass run", { error });
+    res.status(500).json({ error: "Unable to queue Spyglass run." });
   }
 });
 
@@ -358,7 +362,7 @@ router.get("/history/light", checkToken, async (req, res) => {
       id: run.id,
       baseQuery: run.query,
       createdAt: run.createdAt,
-      isDeepAnalysis: true,
+      isDeepAnalysis: run.profile !== "glimpse",
       status: run.status,
     }));
     const offset = (page - 1) * pageSize;
@@ -454,7 +458,7 @@ router.get("/record/:spyglassId", checkToken, async (req, res) => {
           baseQuery: run.query,
           scope: run.resources.map((resource) => resource.id),
           searchPerformed: !run.configuration.scope?.length,
-          isDeepAnalysis: true,
+          isDeepAnalysis: run.profile !== "glimpse",
           findings: run.findings,
           overview: run.overview,
         },

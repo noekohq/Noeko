@@ -4,6 +4,9 @@ import { getDatabase } from "../db";
 import { logger } from "../../services/Logger";
 import { ITag } from "../../../shared/types/tags";
 import { averageEmbeddings } from "../../utils/math";
+import { getEmbedder } from "../../ai/embeddings/embeddings";
+import { getLM } from "../../ai/lms/lm";
+import { LMSchemaType } from "../../ai/lms";
 import GraphService, { IConnectable } from "../../services/Graph";
 import {
   IRabbithole,
@@ -11,7 +14,10 @@ import {
   IRabbitholeForm,
   IRabbitholeIncludes,
   IRabbitholeInclusion,
+  IRabbitholeInclusionOrigin,
+  IRabbitholeRecommendationPolicy,
 } from "../../../shared/types/rabbithole";
+import { GLOBAL_SEMANTIC_SEARCH_THRESHOLD } from "../../../shared/constants/semantic";
 
 // Re-export types for backward compatibility
 export type {
@@ -20,6 +26,12 @@ export type {
   IRabbitholeForm,
   IRabbitholeIncludes,
   IRabbitholeInclusion,
+};
+
+export const DEFAULT_RABBITHOLE_RECOMMENDATION_POLICY: IRabbitholeRecommendationPolicy = {
+  mode: "suggest",
+  threshold: GLOBAL_SEMANTIC_SEARCH_THRESHOLD,
+  types: ["idea", "task", "source", "excerpt"],
 };
 
 export default class Rabbithole {
@@ -38,6 +50,128 @@ export default class Rabbithole {
 
   public async getConnectables() {
     return await Rabbithole.getThings(this._id);
+  }
+
+  private static getThingTitle(thing: IConnectable) {
+    switch (thing.type) {
+      case "idea":
+        return thing.title;
+      case "task":
+        return thing.description;
+      case "source":
+        return thing.displayName;
+      case "excerpt":
+        return thing.note || thing.sourceText;
+    }
+  }
+
+  private static plainText(value?: string | null) {
+    return (value ?? "")
+      .replace(/<[^>]*>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  private static getThingBody(thing: IConnectable) {
+    switch (thing.type) {
+      case "idea":
+        return thing.contentPlain || thing.content;
+      case "task":
+        return thing.scratchpad;
+      case "source":
+        return thing.content;
+      case "excerpt":
+        return [thing.note, thing.sourceText].filter(Boolean).join("\n");
+    }
+  }
+
+  public static async getGenerativeContext(rabbitholeId: string | RecordId) {
+    const things = (await this.getThings(rabbitholeId)) ?? [];
+    if (!things.length) return null;
+
+    return things
+      .map((thing) => {
+        const title = this.plainText(this.getThingTitle(thing));
+        const body = this.plainText(this.getThingBody(thing)).slice(0, 4_000);
+        return [`## ${thing.type}${title ? `: ${title}` : ""}`, body].filter(Boolean).join("\n");
+      })
+      .join("\n\n")
+      .slice(0, 24_000);
+  }
+
+  public static async giveGenerativeName(rabbitholeId: string | RecordId) {
+    const context = await this.getGenerativeContext(rabbitholeId);
+    if (!context) return undefined;
+    const name = await getLM().utils.entitle(
+      context,
+      "Name this topical workspace in 2-7 specific, scannable words. Capture the shared subject or investigation across its contents. Return only the name."
+    );
+    if (!name?.trim()) return undefined;
+    const updated = await this.update(rabbitholeId, {
+      name: name.trim(),
+      nameGeneratedAt: new Date(),
+    });
+    if (updated) await this.cacheCentroidVector(rabbitholeId);
+    return updated;
+  }
+
+  public static async giveGenerativeDescription(rabbitholeId: string | RecordId) {
+    const context = await this.getGenerativeContext(rabbitholeId);
+    if (!context) return undefined;
+    const result = await getLM().generateJSON<{ text: string }>(
+      `Write a concise one- or two-sentence description of the topical workspace represented by the content below. Explain what it is exploring or trying to accomplish. Be specific, natural, and useful for future semantic matching. Do not mention that you were given items or content.\n\n${context}`,
+      {
+        type: LMSchemaType.OBJECT,
+        properties: {
+          text: {
+            type: LMSchemaType.STRING,
+            description: "The Rabbithole workspace description.",
+          },
+        },
+        required: ["text"],
+      }
+    );
+    if (!result?.text?.trim()) return undefined;
+    const updated = await this.update(rabbitholeId, {
+      description: result.text.trim(),
+      descriptionGeneratedAt: new Date(),
+    });
+    if (updated) await this.cacheCentroidVector(rabbitholeId);
+    return updated;
+  }
+
+  public static buildContentSummary(things: IConnectable[]) {
+    if (!things.length) return "This workspace is ready for its first thought, source, or task.";
+
+    const titles = things
+      .map((thing) =>
+        this.getThingTitle(thing)
+          ?.replace(/<[^>]*>/g, " ")
+          .replace(/\s+/g, " ")
+          .trim()
+          .slice(0, 80)
+      )
+      .filter((title): title is string => Boolean(title))
+      .slice(0, 3);
+    const counts = things.reduce<Record<string, number>>((result, thing) => {
+      result[thing.type] = (result[thing.type] ?? 0) + 1;
+      return result;
+    }, {});
+    const scope = Object.entries(counts)
+      .map(([type, count]) => `${count} ${type}${count === 1 ? "" : "s"}`)
+      .join(", ");
+
+    if (!titles.length) return `This workspace currently connects ${scope}.`;
+    const focus = titles.map((title) => `“${title}”`).join(titles.length > 1 ? ", " : "");
+    const remainder = things.length - titles.length;
+    return `Currently exploring ${focus}${remainder > 0 ? `, and ${remainder} more` : ""} across ${scope}.`;
+  }
+
+  public static async refreshContentSummary(rabbitholeId: string | RecordId) {
+    const things = (await this.getThings(rabbitholeId)) ?? [];
+    const contentSummary = this.buildContentSummary(things);
+    await this.update(rabbitholeId, { contentSummary });
+    return contentSummary;
   }
 
   public static async up() {
@@ -124,6 +258,8 @@ export default class Rabbithole {
       const db = await getDatabase();
       const result = await db?.create<IRabbithole, IRabbitholeCreator>("rabbithole", {
         ...form,
+        description: form.description ?? "",
+        recommendationPolicy: form.recommendationPolicy ?? DEFAULT_RABBITHOLE_RECOMMENDATION_POLICY,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -174,8 +310,20 @@ export default class Rabbithole {
       if (!result) {
         throw new Error("Something went wrong getting rabbithole: ", result);
       }
-      const rabbithole = result;
-      return rabbithole;
+      const includes = result.includes?.map(
+        (thing) =>
+          ({
+            ...thing,
+            type: GraphService.getTable(thing.id),
+          }) as IRabbitholeIncludes
+      );
+      return {
+        ...result,
+        includes,
+        contentSummary: Rabbithole.buildContentSummary(
+          (includes ?? []).filter((thing): thing is IConnectable => thing.type !== "tag")
+        ),
+      };
     } catch (error) {
       console.error(error);
       return undefined;
@@ -187,7 +335,7 @@ export default class Rabbithole {
       const db = await getDatabase();
       const limit = options?.limit ? Number(options.limit) : undefined;
       const result = await db?.query<[IRabbithole[]]>(
-        `SELECT * FROM rabbithole WHERE <-owns<-(user WHERE id = $userId) ORDER BY updatedAt${limit ? " LIMIT $limit;" : ""};`,
+        `SELECT * FROM rabbithole WHERE <-owns<-(user WHERE id = $userId) ORDER BY updatedAt DESC${limit ? " LIMIT $limit;" : ""};`,
         { userId: new StringRecordId(userId), limit }
       );
       if (!result) {
@@ -257,13 +405,21 @@ export default class Rabbithole {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized");
 
-      const averageEmbeddings = await this.getRabbitholeAverageEmbeddings(rabbitholeId);
+      const rabbithole = await this.get(rabbitholeId);
+      if (!rabbithole) throw new Error("Rabbithole not found");
+      const includedAverage = await this.getRabbitholeAverageEmbeddings(rabbitholeId);
+      const context = [rabbithole.name, rabbithole.description].filter(Boolean).join(". ").trim();
+      const contextEmbedding = context ? await getEmbedder().embedContent(context) : null;
+      const vectors = [contextEmbedding, includedAverage].filter((vector): vector is number[] =>
+        Boolean(vector?.length)
+      );
+      const average = averageEmbeddings(vectors);
 
       await Rabbithole.update(rabbitholeId, {
-        cachedCentroidEmbeddings: averageEmbeddings,
+        cachedCentroidEmbeddings: average,
       });
 
-      return averageEmbeddings;
+      return average;
     } catch (error) {
       console.error("Error caching the rabbithole centroid vector: ", error);
       return undefined;
@@ -278,7 +434,15 @@ export default class Rabbithole {
     return false;
   }
 
-  static async addThing(rabbitholeId: string | RecordId, thingId: string | RecordId) {
+  static async addThing(
+    rabbitholeId: string | RecordId,
+    thingId: string | RecordId,
+    options: {
+      origin?: IRabbitholeInclusionOrigin;
+      similarity?: number;
+      reason?: string;
+    } = {}
+  ) {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -288,21 +452,47 @@ export default class Rabbithole {
       if (!isIncludable) {
         throw new Error("Thing is not includable");
       }
-      const result = await db?.query<[IRabbitholeInclusion]>(
-        "RELATE $rabbitholeId->includes->$thingId SET createdAt = $now;",
+      const [existing] = await db.query<[IRabbitholeInclusion[]]>(
+        "SELECT * FROM includes WHERE in = $rabbitholeId AND out = $thingId LIMIT 1;",
+        {
+          rabbitholeId: new StringRecordId(rabbitholeId),
+          thingId: new StringRecordId(thingId),
+        }
+      );
+      if (existing?.[0]) {
+        return existing[0];
+      }
+      await db.query(
+        `DELETE rabbithole_excludes WHERE in = $rabbitholeId AND out = $thingId;
+         DELETE rabbithole_recommends WHERE in = $rabbitholeId AND out = $thingId;`,
+        {
+          rabbitholeId: new StringRecordId(rabbitholeId),
+          thingId: new StringRecordId(thingId),
+        }
+      );
+      const result = await db.query<[IRabbitholeInclusion[]]>(
+        `RELATE $rabbitholeId->includes->$thingId CONTENT {
+          createdAt: $now,
+          origin: $origin,
+          similarity: $similarity,
+          reason: $reason
+        };`,
         {
           rabbitholeId: new StringRecordId(rabbitholeId),
           thingId: new StringRecordId(thingId),
           now: new Date(),
+          origin: options.origin ?? "manual",
+          similarity: options.similarity,
+          reason: options.reason,
         }
       );
-      this.update(rabbitholeId, { updatedAt: new Date() });
-      this.cacheCentroidVector(rabbitholeId);
       if (!result) {
         throw new Error("Something went wrong adding thing to rabbithole: ", result);
       }
-      const [rabbithole] = result;
-      return rabbithole;
+      await this.update(rabbitholeId, { updatedAt: new Date() });
+      await this.cacheCentroidVector(rabbitholeId);
+      await this.refreshContentSummary(rabbitholeId);
+      return result[0]?.[0];
     } catch (error) {
       logger.error("Error adding thing to rabbithole: ", [rabbitholeId, thingId]);
       return undefined;
@@ -315,21 +505,16 @@ export default class Rabbithole {
       if (!db) {
         throw new Error("Database not initialized");
       }
-      const result = await db?.query(
-        "RELATE $rabbitholeId->includes->$thingIds SET createdAt = $now;",
-        {
-          rabbitholeId: new StringRecordId(rabbitholeId),
-          thingIds: thingIds.map((id) => new StringRecordId(id)),
-          now: new Date(),
-        }
-      );
-      this.update(rabbitholeId, { updatedAt: new Date() });
-      this.cacheCentroidVector(rabbitholeId);
-      if (!result) {
-        throw new Error("Something went wrong adding things to rabbithole: ", result);
+      const invalid = (
+        await Promise.all(thingIds.map(async (id) => ((await this.isIncludable(id)) ? null : id)))
+      ).filter(Boolean);
+      if (invalid.length) {
+        throw new Error(`Some things are not includable: ${invalid.join(", ")}`);
       }
-      const [rabbithole] = result;
-      return rabbithole;
+      const results = await Promise.all(
+        thingIds.map((thingId) => this.addThing(rabbitholeId, thingId, { origin: "manual" }))
+      );
+      return results.filter(Boolean);
     } catch (error) {
       logger.error("Error adding things to rabbithole: ", [rabbitholeId, thingIds]);
       return undefined;
@@ -357,7 +542,13 @@ export default class Rabbithole {
         throw new Error("Something went wrong getting things from rabbithole: ", result);
       }
       const [rabbithole] = result;
-      return rabbithole;
+      return rabbithole.map(
+        (thing) =>
+          ({
+            ...thing,
+            type: GraphService.getTable(thing.id),
+          }) as IConnectable
+      );
     } catch (error) {
       logger.error("Error getting things from rabbithole: ", [rabbitholeId]);
       return undefined;
@@ -377,11 +568,23 @@ export default class Rabbithole {
           target: new StringRecordId(thingId),
         }
       );
-      this.update(rabbitholeId, { updatedAt: new Date() });
-      this.cacheCentroidVector(rabbitholeId);
       if (!result) {
         throw new Error("Something went wrong deleting thing from rabbithole: ", result);
       }
+      await db.query(
+        `RELATE $rabbitholeId->rabbithole_excludes->$thingId CONTENT {
+          createdAt: $now,
+          reason: "removed"
+        };`,
+        {
+          rabbitholeId: new StringRecordId(rabbitholeId),
+          thingId: new StringRecordId(thingId),
+          now: new Date(),
+        }
+      );
+      await this.update(rabbitholeId, { updatedAt: new Date() });
+      await this.cacheCentroidVector(rabbitholeId);
+      await this.refreshContentSummary(rabbitholeId);
       const [rabbithole] = result;
       return rabbithole;
     } catch (error) {

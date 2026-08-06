@@ -9,6 +9,7 @@ export const createExcerpt = async (excerptable: string | RecordId, form: IExcer
       sourceText: form.sourceText,
       excerptableId: excerptable.toString(),
       pdfMetadata: form.pdfMetadata,
+      textMetadata: form.textMetadata,
     });
     const excerpt = response.data.data as IExcerpt;
     return excerpt;
@@ -21,10 +22,10 @@ export const createExcerpt = async (excerptable: string | RecordId, form: IExcer
 export const editExcerpt = async (excerptId: string | RecordId, form: Partial<IExcerptForm>) => {
   try {
     const updates: Partial<IExcerptForm> = {};
-    if (form.note) {
+    if ("note" in form) {
       updates.note = form.note;
     }
-    if (form.sourceText) {
+    if ("sourceText" in form) {
       updates.sourceText = form.sourceText;
     }
     const response = await api.put(`/excerpts/${excerptId}`, {

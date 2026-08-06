@@ -495,22 +495,47 @@ export default class Spyglass {
 
     const allResultSets = await Promise.all(searchPromises);
 
-    const resultsExisting = new Set<string>();
-    const allResults: ISearchResult[] = [];
+    const combined = new Map<
+      string,
+      {
+        result: ISearchResult;
+        score: number;
+        queryRanks: number[];
+      }
+    >();
 
     for (const resultSet of allResultSets) {
-      if (resultSet) {
-        for (const result of resultSet) {
-          const resultId = result.id.toString();
-          if (!resultsExisting.has(resultId)) {
-            resultsExisting.add(resultId);
-            allResults.push(result);
-          }
+      resultSet?.forEach((result, index) => {
+        const resultId = result.id.toString();
+        const rank = index + 1;
+        const contribution = 1 / (Search.RRF_K + rank);
+        const existing = combined.get(resultId);
+
+        if (existing) {
+          existing.score += contribution;
+          existing.queryRanks.push(rank);
+          return;
         }
-      }
+
+        combined.set(resultId, {
+          result,
+          score: contribution,
+          queryRanks: [rank],
+        });
+      });
     }
 
-    return allResults;
+    return Array.from(combined.values())
+      .map(({ result, score, queryRanks }) => ({
+        ...result,
+        score,
+        debug: {
+          ...result.debug,
+          source: "hybrid" as const,
+          queryRanks,
+        },
+      }))
+      .sort((a, b) => b.score - a.score);
   }
 
   static getCitationMap(results: ISearchResult[]): ICitationMap {
@@ -590,7 +615,7 @@ export default class Spyglass {
             Examples:
             ${mode.intent.examples.map((ex) => `- ${ex}\n`)}
 
-            Analysis Configuration: ${mode.response.description}
+            Analysis Configuration: ${mode.analysis.description}
             Response Format: ${mode.response.description}
           </spyglassMode>
           `;
@@ -605,6 +630,7 @@ export default class Spyglass {
         - Your goal is to draft high-quality search queries to find the most relevant notes from the user's knowledge base.
         - The queries should be optimized to reflect the user's core intent.
         - Focus on quality over quantity. A few well-crafted queries are better than many broad ones.
+        - Put date constraints inside \`filters.date\`; do not emit a top-level \`date\` property.
         `
       )
       // .addBlock(
@@ -858,37 +884,43 @@ export default class Spyglass {
                   enum: ["idea", "task", "source", "excerpt"],
                 },
               },
-              date: {
+              filters: {
                 type: LMSchemaType.OBJECT,
-                description: "Filter results by date ranges using ISO 8601 format.",
+                description: "Optional structured filters to apply to this search query.",
                 properties: {
-                  createdAt: {
+                  date: {
                     type: LMSchemaType.OBJECT,
+                    description: "Filter results by date ranges using ISO 8601 format.",
                     properties: {
-                      after: { type: LMSchemaType.STRING, format: "date-time" },
-                      before: {
-                        type: LMSchemaType.STRING,
-                        format: "date-time",
+                      createdAt: {
+                        type: LMSchemaType.OBJECT,
+                        properties: {
+                          after: { type: LMSchemaType.STRING, format: "date-time" },
+                          before: {
+                            type: LMSchemaType.STRING,
+                            format: "date-time",
+                          },
+                        },
                       },
-                    },
-                  },
-                  updatedAt: {
-                    type: LMSchemaType.OBJECT,
-                    properties: {
-                      after: { type: LMSchemaType.STRING, format: "date-time" },
-                      before: {
-                        type: LMSchemaType.STRING,
-                        format: "date-time",
+                      updatedAt: {
+                        type: LMSchemaType.OBJECT,
+                        properties: {
+                          after: { type: LMSchemaType.STRING, format: "date-time" },
+                          before: {
+                            type: LMSchemaType.STRING,
+                            format: "date-time",
+                          },
+                        },
                       },
-                    },
-                  },
-                  viewedAt: {
-                    type: LMSchemaType.OBJECT,
-                    properties: {
-                      after: { type: LMSchemaType.STRING, format: "date-time" },
-                      before: {
-                        type: LMSchemaType.STRING,
-                        format: "date-time",
+                      viewedAt: {
+                        type: LMSchemaType.OBJECT,
+                        properties: {
+                          after: { type: LMSchemaType.STRING, format: "date-time" },
+                          before: {
+                            type: LMSchemaType.STRING,
+                            format: "date-time",
+                          },
+                        },
                       },
                     },
                   },
@@ -1643,6 +1675,7 @@ export default class Spyglass {
   public static glimpseModePromptBuilder(
     query: string,
     resources: IConnectableFields[],
+    intent?: ISpyglassIntent,
     history?: ISpyglassHistoryItem[]
   ) {
     const builder = new PromptBuilder()
@@ -1682,6 +1715,7 @@ export default class Spyglass {
 
     builder
       .addBlock("Mission Statement", spyglassMissionStatement)
+      .addBlock("User Intent", intent?.intent ?? query)
       .addBlock(
         "The Map of Content Philosophy",
         `
@@ -1751,13 +1785,15 @@ export default class Spyglass {
     query,
     scope,
     history,
+    intent,
   }: {
     query: string;
     scope: IConnectableFields[];
     history?: ISpyglassHistoryItem[];
+    intent?: ISpyglassIntent;
   }): AsyncGenerator<string, void, unknown> {
     try {
-      const overviewPrompt = this.glimpseModePromptBuilder(query, scope, history);
+      const overviewPrompt = this.glimpseModePromptBuilder(query, scope, intent, history);
       const schema = this.glimpseModeSchema(scope);
       const lm = getLM().withModel("simple");
       for await (const chunk of lm.generateJSONStream(overviewPrompt.get(), schema)) {
@@ -1772,6 +1808,7 @@ export default class Spyglass {
   public static overviewFromFindingsPromptBuilder(
     query: string,
     findings: IFinding[],
+    intent?: ISpyglassIntent,
     history?: ISpyglassHistoryItem[]
   ) {
     const builder = new PromptBuilder()
@@ -1809,6 +1846,7 @@ export default class Spyglass {
 
     builder
       .addBlock("Mission Statement", spyglassMissionStatement)
+      .addText(intent ? Modes[intent.mode].response.prompt(query).get() : "")
       .addBlock(
         "Output and Citation Rules",
         `
@@ -1851,14 +1889,21 @@ export default class Spyglass {
   public static async *generateOverviewFromGeneratedFindings({
     query,
     findings,
+    intent,
     history,
   }: {
     query: string;
     findings: IFinding[];
+    intent?: ISpyglassIntent;
     history?: ISpyglassHistoryItem[];
   }): AsyncGenerator<string, void, unknown> {
     try {
-      const overviewPrompt = this.overviewFromFindingsPromptBuilder(query, findings, history);
+      const overviewPrompt = this.overviewFromFindingsPromptBuilder(
+        query,
+        findings,
+        intent,
+        history
+      );
       const lm = getLM().withModel("simple").withThinking();
       for await (const chunk of lm.generateStream(overviewPrompt.get())) {
         yield chunk;
@@ -1891,7 +1936,17 @@ export default class Spyglass {
     try {
       yield { type: "status", data: "Starting analysis..." };
 
-      let intent: ISpyglassIntent | undefined = undefined;
+      const intent = await this.getIntentConfigFromQuery(
+        query,
+        deepAnalysis ? "fast-accurate" : "simple",
+        history
+      );
+      if (!intent) {
+        yield { type: "error", data: "No intent found for the query." };
+        return;
+      }
+      yield { type: "intent_loaded", data: intent };
+
       const resources: IConnectableFields[] = [];
       const fullResults: IConnectable[] = [];
       const loadedIds = new Set<string>();
@@ -1943,17 +1998,6 @@ export default class Spyglass {
           }
         }
       } else {
-        const _intent = await this.getIntentConfigFromQuery(
-          query,
-          deepAnalysis ? "fast-accurate" : "simple",
-          history
-        );
-        if (!_intent) {
-          yield { type: "error", data: "No intent found for the query." };
-          return;
-        }
-        intent = _intent;
-        yield { type: "intent_loaded", data: intent };
         const searches = intent.searches.map((s) => {
           const existingFilters = s.filters || {};
           return {
@@ -1994,6 +2038,7 @@ export default class Spyglass {
         const overviewGenerator = Spyglass.generateOverviewFromGeneratedFindings({
           query,
           findings: finalFindings,
+          intent,
           history,
         });
         for await (const chunk of overviewGenerator) {
@@ -2004,6 +2049,7 @@ export default class Spyglass {
         const glimpseGenerator = Spyglass.generateGlimpseStream({
           query,
           scope: resources,
+          intent,
           history,
         });
         for await (const chunk of glimpseGenerator) {

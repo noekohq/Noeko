@@ -10,6 +10,7 @@ import {
   PaletteIcon,
   DatabaseIcon,
   ActivityIcon,
+  CodeIcon,
   MagnifyingGlassIcon,
 } from "@phosphor-icons/react";
 import PaperThing from "@core/design/components/Paper/Things/PaperThing";
@@ -24,6 +25,7 @@ import AccountIdentity from "./views/AccountIdentity";
 import AppearanceExperience from "./views/AppearanceExperience";
 import WorkspaceData from "./views/WorkspaceData";
 import ActivityNetworkCommunity from "./views/ActivityNetworkCommunity";
+import DeveloperAutomation from "./views/DeveloperAutomation";
 import Content from "@/core/design/components/Layout/Content";
 import Search from "@/domains/discovery/components/Search/Search";
 import { useLayout } from "@/contexts/LayoutContext";
@@ -66,6 +68,13 @@ export default function Settings() {
         detail: i18n._(t`Import, export & tags`),
         icon: DatabaseIcon,
         link: "data",
+      },
+      {
+        id: "developer",
+        title: i18n._(t`Developer & Automation`),
+        detail: i18n._(t`API keys & webhooks`),
+        icon: CodeIcon,
+        link: "developer",
       },
       {
         id: "activity",
@@ -130,6 +139,32 @@ export default function Settings() {
         elementId: "language",
       },
       {
+        title: i18n._(t`Graphics quality`),
+        keywords: [
+          i18n._(t`performance`),
+          i18n._(t`graphics`),
+          i18n._(t`effects`),
+          i18n._(t`animation`),
+          i18n._(t`reduced motion`),
+          i18n._(t`GPU`),
+        ],
+        route: "appearance",
+        elementId: "graphics-mode",
+      },
+      {
+        title: i18n._(t`Constellation visual mode`),
+        keywords: [
+          i18n._(t`constellation`),
+          i18n._(t`graph`),
+          i18n._(t`depth`),
+          i18n._(t`classic`),
+          i18n._(t`static`),
+          i18n._(t`animation`),
+        ],
+        route: "appearance",
+        elementId: "constellation-visual-mode",
+      },
+      {
         title: i18n._(t`Keymap`),
         keywords: [
           i18n._(t`shortcuts`),
@@ -183,6 +218,26 @@ export default function Settings() {
         title: i18n._(t`Delete Account`),
         keywords: [i18n._(t`remove me`), i18n._(t`destroy`), i18n._(t`close account`)],
         route: "account",
+      },
+      {
+        title: i18n._(t`API keys`),
+        keywords: [
+          i18n._(t`developer`),
+          i18n._(t`automation`),
+          i18n._(t`token`),
+          i18n._(t`credentials`),
+        ],
+        route: "developer",
+      },
+      {
+        title: i18n._(t`Webhooks`),
+        keywords: [
+          i18n._(t`automation`),
+          i18n._(t`events`),
+          i18n._(t`integrations`),
+          i18n._(t`API`),
+        ],
+        route: "developer",
       },
       {
         title: i18n._(t`Spyglass History`),
@@ -366,6 +421,16 @@ export default function Settings() {
               style={{ paddingTop: "2rem" }}
             >
               <WorkspaceData />
+            </div>
+
+            <div
+              id="developer"
+              ref={(el) => {
+                sectionRefs.current["developer"] = el;
+              }}
+              style={{ paddingTop: "2rem" }}
+            >
+              <DeveloperAutomation />
             </div>
 
             <div

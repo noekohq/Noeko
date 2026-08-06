@@ -9,8 +9,8 @@ import { showNotification } from "@mantine/notifications";
 import { getOS } from "@core/utils/platform";
 import { useAuth } from "@domains/identity/contexts/AuthContext";
 import { userIsSuperuser } from "@domains/identity/utils/user";
-import { CheckIcon } from "@phosphor-icons/react";
-import { Group, Text, Drawer, Space, Modal, Stack, Button } from "@mantine/core";
+import { ArrowRightIcon, CheckIcon, ShieldCheckIcon } from "@phosphor-icons/react";
+import { Text, Drawer, Space, Modal, Button, ThemeIcon, Title } from "@mantine/core";
 import { useLayout } from "./LayoutContext";
 import FeedbackModal from "@/core/design/components/Modals/FeedbackModal";
 import Spotlight from "@domains/discovery/components/Spotlight/Spotlight";
@@ -25,7 +25,11 @@ import PaperDrawer from "@core/design/components/Paper/PaperDrawer";
 import { createTask } from "@domains/knowledge/utils/tasks";
 import { ISafeIdea } from "../../shared/types/idea";
 import { useQueryClient } from "@tanstack/react-query";
-import { rabbitholeKeys } from "@/domains/rabbitholes/hooks/useRabbitholes";
+import {
+  rabbitholeKeys,
+  reconcileRabbitholeCaches,
+} from "@/domains/rabbitholes/hooks/useRabbitholes";
+import policyStyles from "./PolicyHandler.module.scss";
 
 const { VITE_MAX_USER_NOTES } = import.meta.env;
 
@@ -215,8 +219,9 @@ export function InteractionProvider({ children }: { children: React.ReactNode })
     setLoadingSomething(true);
     await handleCreateNewRabbithole(
       (r) => {
+        reconcileRabbitholeCaches(queryClient, r, { addToLists: true });
+        queryClient.invalidateQueries({ queryKey: rabbitholeKeys.lists() });
         navigate(`rabbitholes/${r.id.toString()}`);
-        queryClient.invalidateQueries({ queryKey: rabbitholeKeys.all });
       },
       (err) => {
         console.error("Error creating new Rabbithole: ", err);
@@ -235,6 +240,9 @@ export function InteractionProvider({ children }: { children: React.ReactNode })
       auto: false,
       description: description || "New task",
     });
+    if (newTask && currentRabbithole) {
+      await includeThing(newTask.id.toString());
+    }
     navigate(`/task/${newTask?.id}`);
   };
 
@@ -503,7 +511,8 @@ export const useInteraction = () => {
 };
 
 function PolicyHandler() {
-  const { user, loggedIn, acceptPrivacyPolicy, acceptBoth, acceptToS } = useAuth();
+  const { user, acceptPrivacyPolicy, acceptBoth, acceptToS } = useAuth();
+  const [isAccepting, setIsAccepting] = useState(false);
 
   const showLegalModal = (): "privacy" | "tos" | "both" | undefined => {
     if (!user?.acceptedPrivacyPolicyAt && !user?.acceptedTermsOfServiceAt) {
@@ -517,93 +526,73 @@ function PolicyHandler() {
     }
   };
 
+  const requiredPolicy = showLegalModal();
+
+  const handleAccept = async () => {
+    if (!requiredPolicy || isAccepting) return;
+
+    setIsAccepting(true);
+    try {
+      if (requiredPolicy === "both") await acceptBoth();
+      if (requiredPolicy === "privacy") await acceptPrivacyPolicy();
+      if (requiredPolicy === "tos") await acceptToS();
+    } finally {
+      setIsAccepting(false);
+    }
+  };
+
   return (
-    <>
-      <Drawer
-        opened={showLegalModal() === "both"}
-        withCloseButton={false}
-        onClose={() => {}}
-        size="80%"
-        position="top"
-        offset="24px"
-        radius="md"
-      >
-        <Stack gap="md" align="center" justify="center">
-          <Text size="sm" c="dimmed">
-            Please accept our <a href="https://www.noeko.app/privacy">Privacy Policy</a> and{" "}
-            <a href="https://www.noeko.app/terms-of-service">Terms of Service</a> to continue using
-            Noeko :)
-          </Text>
-          <Group gap="sm">
-            <Button
-              variant="light"
-              color="blue"
-              onClick={() => {
-                acceptBoth();
-              }}
-            >
-              Accept
-            </Button>
-          </Group>
-        </Stack>
-      </Drawer>
+    <Modal
+      opened={Boolean(requiredPolicy)}
+      onClose={() => {}}
+      withCloseButton={false}
+      closeOnClickOutside={false}
+      closeOnEscape={false}
+      centered
+      size={520}
+      padding={0}
+      radius="xl"
+      overlayProps={{ backgroundOpacity: 0.72, blur: 10 }}
+      classNames={{ content: policyStyles.modal, body: policyStyles.body }}
+      aria-labelledby="policy-dialog-title"
+    >
+      <div className={policyStyles.card}>
+        <ThemeIcon className={policyStyles.icon} size={58} radius="xl" variant="light">
+          <ShieldCheckIcon size={28} weight="duotone" />
+        </ThemeIcon>
 
-      <Drawer
-        opened={showLegalModal() === "privacy"}
-        withCloseButton={false}
-        onClose={() => {}}
-        size="80%"
-        position="top"
-        offset="24px"
-        radius="md"
-      >
-        <Stack gap="md" align="center" justify="center">
-          <Text size="sm" c="dimmed">
-            Please accept our <a href="https://www.noeko.app/privacy">Privacy Policy</a> to continue
-            using Noeko :)
-          </Text>
-          <Group gap="sm">
-            <Button
-              variant="light"
-              color="blue"
-              onClick={() => {
-                acceptPrivacyPolicy();
-              }}
-            >
-              Accept
-            </Button>
-          </Group>
-        </Stack>
-      </Drawer>
+        <Title id="policy-dialog-title" order={2} className={policyStyles.title}>
+          Before you continue
+        </Title>
 
-      <Drawer
-        opened={showLegalModal() === "tos"}
-        withCloseButton={false}
-        onClose={() => {}}
-        size="80%"
-        position="top"
-        offset="24px"
-        radius="md"
-      >
-        <Stack gap="md" align="center" justify="center">
-          <Text size="sm" c="dimmed">
-            Please accept our <a href="https://www.noeko.app/terms">Terms of Service</a> to continue
-            using Noeko :)
-          </Text>
-          <Group gap="sm">
-            <Button
-              variant="light"
-              color="blue"
-              onClick={() => {
-                acceptToS();
-              }}
-            >
-              Accept
-            </Button>
-          </Group>
-        </Stack>
-      </Drawer>
-    </>
+        <Text className={policyStyles.description} my="md" mx="auto">
+          Please review and accept our{" "}
+          {(requiredPolicy === "both" || requiredPolicy === "privacy") && (
+            <a href="https://www.noeko.app/privacy" target="_blank" rel="noreferrer">
+              Privacy Policy
+            </a>
+          )}
+          {requiredPolicy === "both" && " and "}
+          {(requiredPolicy === "both" || requiredPolicy === "tos") && (
+            <a href="https://www.noeko.app/terms-of-service" target="_blank" rel="noreferrer">
+              Terms of Service
+            </a>
+          )}{" "}
+          to keep using Noeko.
+        </Text>
+
+        <Button
+          className={policyStyles.acceptButton}
+          size="md"
+          fullWidth
+          loading={isAccepting}
+          rightSection={!isAccepting && <ArrowRightIcon size={17} weight="bold" />}
+          onClick={handleAccept}
+        >
+          Accept and continue
+        </Button>
+      </div>
+    </Modal>
   );
 }
 

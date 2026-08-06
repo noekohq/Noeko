@@ -32,6 +32,7 @@ import { ISource } from "../../../../../app/database/models/source";
 import { createSourceFrom } from "@domains/knowledge/utils/sources";
 import { useNavigate } from "react-router";
 import { useInteraction } from "@/contexts/InteractionContext";
+import { SOURCEABLE_MIME_TYPES } from "../../../../../shared/files/mimeTypes";
 
 interface IAddSourceFormProps {
   onSubmit?: (source: ISource) => void;
@@ -217,7 +218,7 @@ export default function AddSourceForm({ onSubmit, onCancel }: IAddSourceFormProp
       <Grid.Col span={{ sm: 12, md: 6 }}>
         <FileInput
           placeholder="Choose a file"
-          accept="application/pdf"
+          accept={SOURCEABLE_MIME_TYPES.join(",")}
           {...fileForm.getInputProps("userFile")}
           leftSection={
             <>{preview ? <preview.icon weight="bold" /> : <UploadSimpleIcon weight="bold" />}</>

@@ -19,7 +19,8 @@ import {
   TextInput,
   Combobox,
   useCombobox,
-  Collapse,
+  Modal,
+  Select,
 } from "@mantine/core";
 import {
   CheckIcon,
@@ -33,6 +34,11 @@ import { userFormattedName } from "@domains/identity/utils/user";
 import { PaperContextMenu } from "@core/design/components/Paper/PaperContextMenu";
 import { getNodeLink } from "@infrastructure/graph/utils";
 import { useApiQuery } from "@/core/hooks/useApiQuery";
+import type {
+  IOwnerSummary,
+  IOrganizationSummary,
+} from "../../../../../../../shared/types/organization";
+import { api } from "@infrastructure/api/client";
 
 const { VITE_DEPLOYED_URL } = import.meta.env;
 
@@ -45,6 +51,16 @@ interface IAccessManagerProps {
 }
 
 export default function AccessManager({ connectable }: IAccessManagerProps) {
+  const { data: owner, refetch: loadOwner } = useApiQuery<IOwnerSummary>({
+    url: `/organizations/resources/${connectable.id.toString()}/owner`,
+    queryKey: ["resource-owner", connectable.id.toString()],
+  });
+
+  const { data: organizations } = useApiQuery<IOrganizationSummary[]>({
+    url: "/organizations",
+    queryKey: ["organizations"],
+  });
+
   const { data: shared, refetch: loadShared } = useApiQuery<IShareDetails[]>({
     url: `/sharing/${connectable.id.toString()}`,
     queryKey: ["sharing", connectable.id.toString()],
@@ -68,7 +84,41 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [loadingShare, setLoadingShare] = useState(false);
   const [shareErrors, setShareErrors] = useState<string[]>([]);
+  const [transferOpened, setTransferOpened] = useState(false);
+  const [transferOrganizationSlug, setTransferOrganizationSlug] = useState<string | null>(null);
+  const [transferring, setTransferring] = useState(false);
   const { user } = useAuth();
+
+  const isPersonalOwner = owner?.type === "user" && owner.id.toString() === user?.id.toString();
+
+  const handleTransfer = async () => {
+    if (!transferOrganizationSlug || connectable.type !== "idea") return;
+    const organizationName = organizations?.find(
+      (organization) => organization.slug === transferOrganizationSlug
+    )?.name;
+    try {
+      setTransferring(true);
+      await api.post(
+        `/organizations/${transferOrganizationSlug}/ideas/${connectable.id.toString()}/transfer`
+      );
+      await loadOwner();
+      setTransferOpened(false);
+      setTransferOrganizationSlug(null);
+      showNotification({
+        title: "Ownership transferred",
+        message: `This idea is now owned by ${organizationName || "the organization"}.`,
+      });
+    } catch (error) {
+      console.error("Error transferring ownership:", error);
+      showNotification({
+        title: "Ownership not transferred",
+        message: "Please check your organization membership and try again.",
+        color: "red",
+      });
+    } finally {
+      setTransferring(false);
+    }
+  };
 
   const friendsData = useMemo(
     () =>
@@ -276,19 +326,29 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
 
       <Stack gap="sm">
         <Text size="xs" fw={700} c="dark.3" tt="uppercase">
-          People with access
+          Owner
         </Text>
-
         <Group justify="space-between" align="center">
           <Stack gap={0}>
             <Text size="sm" fw={500}>
-              {userFormattedName(user)}
+              {owner?.name || "Loading owner..."}
             </Text>
             <Text size="xs" c="dimmed">
-              Owner
+              {owner?.type === "organization" ? "Organization" : "Personal"}
             </Text>
           </Stack>
+          {isPersonalOwner && connectable.type === "idea" && organizations?.length ? (
+            <Button variant="subtle" size="compact-xs" onClick={() => setTransferOpened(true)}>
+              Transfer
+            </Button>
+          ) : null}
         </Group>
+      </Stack>
+
+      <Stack gap="sm">
+        <Text size="xs" fw={700} c="dark.3" tt="uppercase">
+          People with access
+        </Text>
 
         {shared?.map((share) => (
           <Group key={share.user.id.toString()} justify="space-between" align="center">
@@ -336,6 +396,43 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
           </Group>
         ))}
       </Stack>
+
+      <Modal
+        opened={transferOpened}
+        onClose={() => setTransferOpened(false)}
+        title="Transfer ownership"
+        centered
+      >
+        <Stack>
+          <Text size="sm">
+            The selected organization will own this idea. Its owners will gain administrative
+            control, and your access will follow your organization role.
+          </Text>
+          <Select
+            label="Organization"
+            placeholder="Choose an organization"
+            value={transferOrganizationSlug}
+            onChange={setTransferOrganizationSlug}
+            data={(organizations || []).map((organization) => ({
+              value: organization.slug,
+              label: organization.name,
+            }))}
+          />
+          <Group justify="flex-end">
+            <Button variant="subtle" color="gray" onClick={() => setTransferOpened(false)}>
+              Cancel
+            </Button>
+            <Button
+              color="red"
+              loading={transferring}
+              disabled={!transferOrganizationSlug}
+              onClick={handleTransfer}
+            >
+              Transfer ownership
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </Stack>
   );
 }

@@ -18,7 +18,7 @@ export type IUseConnectableArgs = {
 export type IUseConnectableReturn = {
   connected: IConnectable[];
   loadingConnected: boolean;
-  similar: IConnectable[];
+  similar: ISimilarConnectable[];
   tags: {
     applied: ITag[];
     suggested: ITag[];

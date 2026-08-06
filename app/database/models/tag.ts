@@ -340,8 +340,6 @@ export class Tag {
         return undefined;
       }
 
-      this.cacheCentroidVector(tag.id.toString());
-
       const [relationship] = result;
       return relationship;
     } catch (err) {
@@ -745,11 +743,10 @@ export class Tag {
       tagEmbedding = updated?.embeddings ?? null;
     }
 
-    let centroidEmbeddings: number[] | null = tag.cachedCentroidEmbeddings;
-    if (!centroidEmbeddings) {
-      const centroid = await Tag.cacheCentroidVector(tagId);
-      centroidEmbeddings = centroid ?? null;
-    }
+    // A centroid is derived from the current embeddings of every described item.
+    // Recompute it for recommendations so provider changes and content updates
+    // cannot leave this search in a stale or incompatible vector space.
+    const centroidEmbeddings = (await Tag.getTagAverageEmbeddings(tagId)) ?? null;
 
     const finalVector = await this.getWeightedVector(
       tagEmbedding || null,

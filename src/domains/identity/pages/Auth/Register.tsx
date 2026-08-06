@@ -23,14 +23,31 @@ import { validateEmail } from "@core/utils/data";
 import StageIndicator from "@core/design/components/Utils/StageIndicator";
 import { useEffect, useState } from "react";
 import { QuestionIcon } from "@phosphor-icons/react";
+import type {
+  IOrganization,
+  IOrganizationInvitationPreview,
+} from "../../../../../shared/types/organization";
+import { useApiQuery } from "@/core/hooks/useApiQuery";
 
 export default function Register() {
   const navigate = useNavigate();
   const { setTokens, login: loadUser } = useAuth();
 
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
 
   const referralCode = searchParams.get("ref");
+  const invitationToken = searchParams.get("invite");
+  const {
+    data: invitation,
+    isLoading: loadingInvitation,
+    error: invitationError,
+  } = useApiQuery<IOrganizationInvitationPreview>({
+    url: invitationToken
+      ? `/organizations/invitations/${encodeURIComponent(invitationToken)}`
+      : null,
+    queryKey: ["organization-invitation", invitationToken],
+    options: { retry: false },
+  });
 
   const registerForm = useForm({
     initialValues: {
@@ -84,6 +101,12 @@ export default function Register() {
     },
   });
 
+  useEffect(() => {
+    if (invitation?.email && registerForm.values.email !== invitation.email) {
+      registerForm.setFieldValue("email", invitation.email);
+    }
+  }, [invitation?.email]);
+
   const { load: register, loading: loadingRegister } = useFetch<
     {
       email: string;
@@ -91,11 +114,13 @@ export default function Register() {
       passwordConfirmation: string;
       firstName: string;
       lastName: string;
-      referralCode: string | null;
+      referralCode?: string | null;
     },
-    { accessToken: string; refreshToken: string; user: ISafeUser }
+    { accessToken: string; refreshToken: string; user: ISafeUser; organization?: IOrganization }
   >({
-    url: "/users/register-referred",
+    url: invitationToken
+      ? `/organizations/invitations/${encodeURIComponent(invitationToken)}/register`
+      : "/users/register-referred",
     method: "POST",
     body: {
       email: registerForm.values.email,
@@ -113,14 +138,15 @@ export default function Register() {
         message: "Welcome!",
       });
       loadUser(data.accessToken).then(() => {
-        navigate("/");
+        navigate(data.organization ? `/organizations/${data.organization.slug}` : "/");
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error(error);
       showNotification({
         title: "Registration Failed",
-        message: "An error occurred during registration",
+        message: error?.response?.data?.message || "An error occurred during registration",
+        color: "red",
       });
     },
   });
@@ -162,12 +188,12 @@ export default function Register() {
   const [checkedAgreement, setCheckedAgreement] = useState(false);
 
   useEffect(() => {
-    if (referralCode) {
+    if (referralCode && !invitationToken) {
       checkCode();
     }
-  }, [referralCode]);
+  }, [referralCode, invitationToken]);
 
-  if (!referralCode) {
+  if (!referralCode && !invitationToken) {
     return (
       <Container
         style={{
@@ -202,7 +228,18 @@ export default function Register() {
     );
   }
 
-  if (!codeValidity?.valid) {
+  if (invitationToken && loadingInvitation) {
+    return (
+      <Flex justify="center" align="center" h="100vh">
+        <Loader />
+      </Flex>
+    );
+  }
+
+  if (
+    (invitationToken && (invitationError || !invitation)) ||
+    (!invitationToken && !codeValidity?.valid)
+  ) {
     return (
       <Container
         style={{
@@ -221,8 +258,8 @@ export default function Register() {
               </Grid.Col>
               <Grid.Col span={{ sm: 12 }}>
                 <Text>
-                  Sorry, it looks like this referral code is invalid. Please use a valid code or
-                  join the <a href="https://noeko.neoko.app">waitlist</a>.
+                  Sorry, it looks like this invitation is invalid or expired. Please ask for a new
+                  invitation or join the <a href="https://waitlist.noeko.app">waitlist</a>.
                 </Text>
               </Grid.Col>
               <Grid.Col span={{ sm: 12 }}>
@@ -293,6 +330,7 @@ export default function Register() {
                 label="Email"
                 placeholder="Email"
                 {...registerForm.getInputProps("email")}
+                readOnly={!!invitationToken}
                 withAsterisk
               />
             </Grid.Col>

@@ -38,10 +38,11 @@ export class SpyglassRunModel {
     if (!db) throw new Error("Database connection not available");
 
     const now = new Date();
+    const profile = input.profile ?? "deep_focus";
     const [run] = await db.create<SpyglassRun, SpyglassRunCreator>(this.table, {
       userId: new StringRecordId(input.userId),
       query: input.query,
-      profile: "deep_focus",
+      profile,
       configuration: input.configuration,
       status: "queued",
       phase: "queued",
@@ -62,7 +63,11 @@ export class SpyglassRunModel {
       runId: run.id,
       createdAt: now,
     });
-    await this.appendEvent(run.id, "status", "Queued for Deep Focus analysis.");
+    await this.appendEvent(
+      run.id,
+      "status",
+      profile === "deep_focus" ? "Queued for Deep Focus analysis." : "Queued for Glimpse analysis."
+    );
     return (await this.getById(run.id)) ?? run;
   }
 
@@ -229,7 +234,7 @@ export class SpyglassRunModel {
           { id, data, now }
         )
       );
-    } else if (type === "overview_chunk") {
+    } else if (type === "overview_chunk" || type === "glimpse_chunk") {
       await withWriteConflictRetry(() =>
         db.query(
           `UPDATE $id SET overview = string::concat(overview, $data), phase = "overview", updatedAt = $now;`,
@@ -303,7 +308,7 @@ export class SpyglassRunModel {
     if (type === "intent_loaded") return "intent";
     if (type === "resources_loaded" || type === "full_results_loaded") return "retrieval";
     if (type === "findings_chunk") return "findings";
-    if (type === "overview_chunk") return "overview";
+    if (type === "overview_chunk" || type === "glimpse_chunk") return "overview";
     return undefined;
   }
 }

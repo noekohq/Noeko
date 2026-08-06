@@ -19,16 +19,16 @@ environment
 
 The important files are:
 
-| Responsibility | Location |
-| --- | --- |
-| Supported providers and runtime config | `app/ai/embeddings/config.ts` |
-| Provider construction and caching | `app/ai/embeddings/embeddings.ts` |
-| Provider contract | `app/ai/embeddings/index.ts` |
-| Provider implementations | `app/ai/embeddings/providers/` |
-| Profile, content hash, and status lifecycle | `app/ai/embeddings/lifecycle.ts` |
-| Vector conversion and dimension checks | `app/ai/embeddings/vectors.ts` |
-| Table-specific content adapters | `app/ai/embeddings/models.ts` |
-| Operational CLI | `scripts/embeddings.ts` |
+| Responsibility                              | Location                          |
+| ------------------------------------------- | --------------------------------- |
+| Supported providers and runtime config      | `app/ai/embeddings/config.ts`     |
+| Provider construction and caching           | `app/ai/embeddings/embeddings.ts` |
+| Provider contract                           | `app/ai/embeddings/index.ts`      |
+| Provider implementations                    | `app/ai/embeddings/providers/`    |
+| Profile, content hash, and status lifecycle | `app/ai/embeddings/lifecycle.ts`  |
+| Vector conversion and dimension checks      | `app/ai/embeddings/vectors.ts`    |
+| Table-specific content adapters             | `app/ai/embeddings/models.ts`     |
+| Operational CLI                             | `scripts/embeddings.ts`           |
 
 The managed tables are `idea`, `tag`, `task`, `source`, and `excerpt`. Their
 vectors remain in each record's `embeddings` field.
@@ -58,11 +58,16 @@ EMBEDDINGS_DIMENSION=768
 EMBEDDINGS_RPM_LIMIT=1000
 ```
 
-| Provider | Required configuration | Notes |
-| --- | --- | --- |
-| `google` | `GEMINI_API_KEY`, or Google Cloud project credentials | `GOOGLE_EMBEDDING_MODEL_NAME` overrides `EMBEDDINGS_MODEL`; Google defaults to `text-embedding-005` |
-| `openai` | `OPENAI_API_KEY` | Defaults to `text-embedding-3-small`; requests the configured output dimension |
-| `deterministic` | None | Stable local vectors for development and automated tests; not semantically meaningful |
+| Provider        | Required configuration                                | Notes                                                                                               |
+| --------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `google`        | `GEMINI_API_KEY`, or Google Cloud project credentials | `GOOGLE_EMBEDDING_MODEL_NAME` overrides `EMBEDDINGS_MODEL`; Google defaults to `text-embedding-005` |
+| `openai`        | `OPENAI_API_KEY`                                      | Defaults to `text-embedding-3-small`; requests the configured output dimension                      |
+
+Semantic similarity cutoffs shared by search and proactive organization live in
+`shared/constants/semantic.ts`. Recalibrate these constants when changing embedding providers,
+models, dimensions, or the text used to construct embeddings; cosine similarity is not a calibrated
+probability and its useful operating range can move between vector spaces.
+| `deterministic` | None                                                  | Stable local vectors for development and automated tests; not semantically meaningful               |
 
 The provider factory caches instances by provider, model, and dimension for the
 life of the process. Restart application and CLI processes after changing
@@ -74,21 +79,23 @@ at the persistence/query boundary, where vector length is also validated.
 
 ## Operational commands
 
-| Task | Command |
-| --- | --- |
-| Sample lifecycle status for every table | `bun run embeddings:status` |
-| Mark every managed table stale | `bun run embeddings:stale` |
-| Rebuild the first 100 records per table | `bun run embeddings:rebuild` |
-| Target one table and page | `bun run scripts/embeddings.ts rebuild --table idea --limit 100 --start 0` |
-| Preview a page without writes or embedding API calls | `bun run scripts/embeddings.ts rebuild --table idea --limit 100 --start 0 --dryRun` |
-| Rebuild current records too | `bun run scripts/embeddings.ts rebuild --table idea --limit 100 --start 0 --force` |
-| Show CLI help | `bun run scripts/embeddings.ts --help` |
+| Task                                                           | Command                                                                     |
+| -------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Check lifecycle status for every table                         | `bun run embeddings:status`                                                 |
+| Mark every managed table stale                                 | `bun run embeddings:stale`                                                  |
+| Rebuild every stale record in stable batches                   | `bun run embeddings:rebuild`                                                |
+| Target one table and bounded range                             | `bun run scripts/embeddings.ts rebuild --table idea --limit 1000 --start 0` |
+| Change the batch size                                          | `bun run embeddings:rebuild --batchSize 250`                                |
+| Preview the full rebuild without writes or embedding API calls | `bun run embeddings:rebuild --dryRun`                                       |
+| Rebuild current records too                                    | `bun run embeddings:rebuild --force`                                        |
+| Show CLI help                                                  | `bun run scripts/embeddings.ts --help`                                      |
 
-`status` and `rebuild` operate on one page at a time. The default page is 100
-records starting at offset 0. For a larger table, increase `--start` by the
-chosen limit and continue until `sampled` is less than the limit. Repeat for
-each managed table. The CLI does not currently auto-page or run a durable
-background job.
+`status` and `rebuild` automatically page through every selected table in a
+stable ID order. `--batchSize` controls the database page size and defaults to 100. `--limit` optionally bounds the total records scanned per table, while
+`--start` resumes from a known offset. Progress is printed after every batch.
+Rebuilds skip records that already match the current profile, so rerunning an
+interrupted command safely resumes the migration without regenerating completed
+vectors.
 
 `mark-stale` updates all records in the selected table; it is not paginated.
 The rebuild command normally skips current records, so `--force` is needed only
@@ -127,15 +134,14 @@ application live during a rebuild can mix old and new vector spaces.
    bun run scripts/embeddings.ts mark-stale --reason provider-switch
    ```
 
-8. Rebuild every page of `idea`, `tag`, `task`, `source`, and `excerpt`.
-   Example:
+8. Rebuild `idea`, `tag`, `task`, `source`, and `excerpt` with the consolidated
+   command:
 
    ```sh
-   bun run scripts/embeddings.ts rebuild --table idea --limit 100 --start 0
-   bun run scripts/embeddings.ts rebuild --table idea --limit 100 --start 100
+   bun run embeddings:rebuild
    ```
 
-9. Run paginated status checks. Investigate every `failed` record and confirm
+9. Run a full status check. Investigate every `failed` record and confirm
    all non-empty records are `ready` under the new profile.
 10. Perform representative semantic searches, then restart the application.
 
@@ -205,10 +211,16 @@ changes the content hash and intentionally makes existing records stale.
 - A failed rebuild stores `embeddingsStatus = "failed"`, clears the vector, and
   records the error. Fix the provider or content issue and rerun that page.
 - Existing records without lifecycle metadata are treated as stale.
-- Rebuilds are synchronous, record-by-record at the orchestration layer, and
-  are not resumable jobs. Record completed offsets during large operations.
-- Offset pagination currently has no explicit sort key. Avoid concurrent writes
-  during a full rebuild so records do not shift between pages.
+- Rebuilds are synchronous and record-by-record at the provider boundary. They
+  are resumable by rerunning the command, but they are not durable background
+  jobs and stop when the process exits.
+- Pagination uses a stable ID order. Avoid high-volume concurrent inserts or
+  deletes during a full rebuild because offset-based pages can still shift.
+- Tag-to-connectable recommendations blend the tag embedding with a centroid
+  derived from the tag's currently described items. The recommendation path
+  recomputes that centroid from current vectors instead of trusting the legacy
+  `cachedCentroidEmbeddings` field, so provider changes and item re-embedding do
+  not mix vector spaces.
 - The deterministic provider proves generation, storage, validation, and query
   plumbing only. It does not prove semantic relevance.
 - `rabbithole` is not currently in the embeddable model registry even though

@@ -132,6 +132,7 @@ dist
 # SurrealDB Database
 data/*
 db_backups/*
+temp_backups/*
 
 # Auth stuff
 auth/*

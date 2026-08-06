@@ -15,14 +15,20 @@ import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
 import Source, { ISource } from "./source";
 import { Readable } from "node:stream";
 import {
-  ISourceableMimeType,
   IUserFile,
   IUserFileForm,
   IConnectableEmbedRelationship,
   IUserFileUserOwnership,
 } from "../../../shared/types/userfile";
+import {
+  isTextMimeType,
+  isTranscribableMimeType,
+  SOURCEABLE_MIME_TYPES,
+  type ISourceableMimeType,
+} from "../../../shared/files/mimeTypes";
+import { getTranscriptionProvider } from "../../ai/transcriptions/transcription";
 
-export const SourceableMimeTypes: ISourceableMimeType[] = ["application/pdf"];
+export const SourceableMimeTypes: readonly ISourceableMimeType[] = SOURCEABLE_MIME_TYPES;
 
 const sanitizeFilename = (filename: string): string => {
   const sanitized = filename.replace(/[^a-zA-Z0-9._-]/g, "_");
@@ -477,47 +483,56 @@ export class UserFile {
   }
 
   static async getTextContent(userFileId: string | RecordId): Promise<string | undefined> {
-    try {
-      const file = await this.get(userFileId);
-      if (!file) {
-        throw new Error("Error getting text content of the file");
-      }
-      const allowedTypes: string[] = [...SourceableMimeTypes];
-      if (!allowedTypes.includes(file.mimeType)) {
-        throw new Error("Couldn't get text content of file with unsupported mimetype");
-      }
+    const file = await this.get(userFileId);
+    if (!file) {
+      throw new Error("Error getting text content of the file");
+    }
+    const allowedTypes: string[] = [...SourceableMimeTypes];
+    if (!allowedTypes.includes(file.mimeType)) {
+      throw new Error("Couldn't get text content of file with unsupported mimetype");
+    }
 
-      const stream = getStreamS3(file.s3key);
-      if (!stream) {
-        throw new Error("Couldn't get s3 stream");
-      }
-      const chunks: Buffer[] = [];
-      for await (const chunk of stream as unknown as Buffer[]) {
-        chunks.push(chunk);
-      }
-      const buffer = Buffer.concat(chunks);
-      const uint8Array = new Uint8Array(buffer);
+    const stream = getStreamS3(file.s3key);
+    if (!stream) {
+      throw new Error("Couldn't get s3 stream");
+    }
+    const chunks: Buffer[] = [];
+    for await (const chunk of stream as unknown as Buffer[]) {
+      chunks.push(chunk);
+    }
+    const buffer = Buffer.concat(chunks);
+    const uint8Array = new Uint8Array(buffer);
 
-      switch (file.mimeType) {
-        case "application/pdf":
-          const doc = await pdfjs.getDocument(uint8Array).promise;
-          const pageTexts: string[] = [];
+    if (isTranscribableMimeType(file.mimeType)) {
+      return getTranscriptionProvider().transcribe({
+        data: buffer,
+        fileName: file.originalFileName,
+        mimeType: file.mimeType,
+      });
+    }
 
-          for (let i = 1; i <= doc.numPages; i++) {
-            const page = await doc.getPage(i);
-            const textContent = await page.getTextContent();
-            const pageText = textContent.items
-              .map((item) => ("str" in item ? item.str : ""))
-              .join(" ");
-            pageTexts.push(pageText);
-          }
+    if (isTextMimeType(file.mimeType)) {
+      return buffer.toString("utf8").replace(/^\uFEFF/, "");
+    }
 
-          return pageTexts.join("\n\n");
-        default:
-          throw new Error("Reached fallthrough case trying to get text of file: " + file.id);
+    switch (file.mimeType) {
+      case "application/pdf": {
+        const doc = await pdfjs.getDocument(uint8Array).promise;
+        const pageTexts: string[] = [];
+
+        for (let i = 1; i <= doc.numPages; i++) {
+          const page = await doc.getPage(i);
+          const textContent = await page.getTextContent();
+          const pageText = textContent.items
+            .map((item) => ("str" in item ? item.str : ""))
+            .join(" ");
+          pageTexts.push(pageText);
+        }
+
+        return pageTexts.join("\n\n");
       }
-    } catch (error) {
-      throw error;
+      default:
+        throw new Error("Reached fallthrough case trying to get text of file: " + file.id);
     }
   }
 }

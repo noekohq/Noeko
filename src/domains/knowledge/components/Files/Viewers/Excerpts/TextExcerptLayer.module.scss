@@ -1,0 +1,27 @@
+.layer {
+  position: relative;
+}
+
+.highlight {
+  position: absolute;
+  z-index: 2;
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: var(--color-highlight, #ffeb3b);
+  opacity: 0.35;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    opacity: 0.55;
+    outline: 1px solid color-mix(in srgb, var(--color-highlight, #ffeb3b) 70%, white);
+  }
+}
+
+.selectionAnchor {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+}

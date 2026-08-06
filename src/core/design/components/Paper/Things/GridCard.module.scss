@@ -22,12 +22,6 @@
   &:hover {
     transform: translateY(-4px);
     box-shadow: var(--mantine-shadow-md);
-
-    .ctaIcon {
-      opacity: 1;
-      transform: translate(2px, -2px);
-      color: var(--mantine-color-primary-filled);
-    }
   }
 
   &:active {
@@ -114,13 +108,39 @@
     }
   }
 
-  .ctaIcon {
-    display: flex;
+  .cardActions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 2px;
+    flex: 0 0 auto;
+  }
+
+  .iconButton {
+    display: inline-flex;
     align-items: center;
     justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--mantine-radius-md);
+    background: transparent;
     color: var(--mantine-color-dimmed);
-    opacity: 0.5;
-    transition: all 0.2s ease;
+    cursor: pointer;
+    transition:
+      color 120ms ease,
+      background-color 120ms ease;
+
+    &:hover {
+      color: var(--mantine-color-text);
+      background-color: var(--mantine-color-default-hover);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--mantine-primary-color-filled);
+      outline-offset: 2px;
+    }
   }
 
   .contentWrapper {
@@ -304,44 +324,17 @@
     }
   }
 
-  .footer {
-    width: 100%;
-    display: flex;
-    justify-content: flex-end;
-    margin-top: auto;
-    height: 28px;
-    z-index: 1;
-  }
-
   .footerContent {
     width: 100%;
     z-index: 1;
   }
 
-  .actionButton {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    border-radius: var(--mantine-radius-md);
-    background-color: var(--mantine-color-default-hover);
-    color: var(--mantine-color-dimmed);
-    border: none;
-    cursor: pointer;
-    transition: 0.2s;
+  &.suggested .actionButton {
+    color: var(--theme-accent-text, var(--mantine-color-text));
 
     &:hover {
-      color: var(--mantine-color-text);
-      background-color: var(--mantine-color-gray-3);
-    }
-
-    [data-mantine-color-scheme="dark"] & {
-      background-color: var(--mantine-color-dark-6);
-
-      &:hover {
-        background-color: var(--mantine-color-dark-5);
-      }
+      color: var(--theme-accent-text, var(--mantine-color-text));
+      background-color: var(--theme-accent-soft, var(--mantine-color-default-hover));
     }
   }
 }

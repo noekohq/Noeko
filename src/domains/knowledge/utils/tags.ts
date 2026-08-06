@@ -33,11 +33,12 @@ export const removeTagFromThing = async (tagId: string | RecordId, thingId: stri
   }
 };
 
-export const createTag = async (name: string, description: string) => {
+export const createTag = async (name: string, description: string, color?: string) => {
   try {
     const response = await api.post(`/tags`, {
       name,
       description,
+      color,
     });
     return response.data.data as ITag;
   } catch (error: any) {

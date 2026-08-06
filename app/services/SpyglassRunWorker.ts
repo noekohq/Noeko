@@ -6,7 +6,7 @@ import Spyglass from "./Spyglass";
 import { logger } from "./Logger";
 
 type AnalysisEvent = {
-  type: SpyglassRunEventType | "glimpse_chunk";
+  type: SpyglassRunEventType;
   data: unknown;
 };
 
@@ -25,7 +25,7 @@ export class SpyglassRunWorker {
         userId: run.userId.toString(),
         query: run.query,
         scope: run.configuration.scope,
-        deepAnalysis: true,
+        deepAnalysis: run.profile !== "glimpse",
         rabbithole: run.configuration.rabbithole,
         tags: run.configuration.tags,
         date: run.configuration.date,
@@ -98,7 +98,13 @@ export class SpyglassRunWorker {
           `Restarting after an expired worker lease (attempt ${run.attempt}).`
         );
       }
-      await this.persistEvent(run.id, "status", "Starting durable Deep Focus analysis.");
+      await this.persistEvent(
+        run.id,
+        "status",
+        run.profile === "glimpse"
+          ? "Starting durable Glimpse analysis."
+          : "Starting durable Deep Focus analysis."
+      );
       leaseTimer = setInterval(
         () => {
           void SpyglassRunModel.renewLease(run.id, this.workerId, this.leaseUntil()).catch(
@@ -122,12 +128,8 @@ export class SpyglassRunWorker {
           return;
         }
 
-        if (event.type === "glimpse_chunk") {
-          throw new Error("A Deep Focus worker received a Glimpse event");
-        }
         if (event.type === "error") {
-          const message =
-            typeof event.data === "string" ? event.data : "Deep Focus analysis failed.";
+          const message = typeof event.data === "string" ? event.data : "Spyglass analysis failed.";
           await this.persistEvent(run.id, "error", message);
           await SpyglassRunModel.finish(run.id, "failed", message);
           return;
@@ -142,7 +144,7 @@ export class SpyglassRunWorker {
 
       const finalRun = await SpyglassRunModel.getById(run.id);
       if (!finalRun || !["completed", "failed", "cancelled"].includes(finalRun.status)) {
-        throw new Error("Deep Focus analysis ended without a terminal event");
+        throw new Error("Spyglass analysis ended without a terminal event");
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

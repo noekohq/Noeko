@@ -1,5 +1,5 @@
 import React from "react";
-import { IStatusBarMode, useLayout } from "@/contexts/LayoutContext";
+import { IStatusBarMode, useLayout, useLayoutScroll } from "@/contexts/LayoutContext";
 import styles from "./Bottom.module.scss";
 import { useInteraction } from "@/contexts/InteractionContext";
 import useRabbithole from "@domains/rabbitholes/hooks/useRabbithole";
@@ -35,9 +35,9 @@ const StatusBar = ({ children, topLevel }: IBottomProps) => {
         mode: { get: rightMode, set: setRightMode },
       },
     },
-    scroll: { isScrolled, scrollDirection },
     isMobile,
   } = useLayout();
+  const { isScrolled, scrollDirection } = useLayoutScroll();
 
   const { isDownRabbithole, currentRabbithole } = useRabbithole();
 

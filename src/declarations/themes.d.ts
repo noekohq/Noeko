@@ -2,7 +2,7 @@ import { MantineColorScheme, MantineThemeOverride } from "@mantine/core";
 
 export type IThemeOption =
   | "noeko"
-  | "silicon"
+  | "basalt"
   | "nord"
   | "pinkLady"
   | "vaporwave"

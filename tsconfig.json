@@ -30,6 +30,7 @@
     "src",
     "app",
     "e2e",
+    "benchmarks",
     "integration",
     "scripts/e2e",
     "scripts/spyglass-live.ts",

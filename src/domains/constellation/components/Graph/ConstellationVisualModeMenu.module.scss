@@ -1,0 +1,23 @@
+.trigger {
+  border-radius: var(--mantine-radius-md);
+  color: var(--mantine-color-dark-1);
+  border: 1.5px solid transparent;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease,
+    border-color 0.2s ease;
+
+  &[data-expanded="true"],
+  &:hover {
+    background-color: var(--mantine-color-dark-6);
+    border-color: var(--mantine-color-dark-7);
+  }
+
+  &:active {
+    transform: scale(0.95) translateY(2px);
+  }
+}
+
+.modeLabel {
+  min-width: 0;
+}

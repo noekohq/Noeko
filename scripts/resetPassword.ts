@@ -2,15 +2,16 @@ process.env.DB_HOST = "localhost"; // Otherwise it connects over docker
 
 import { User } from "../app/database/models/user";
 import { getRandomPassword, hashPassword } from "../app/utils/crypto";
-import { parseArgs } from "util";
+import { parseArgs } from "node:util";
 import chalk from "chalk";
 
 if (!User) {
   throw new Error("Something went wrong getting the user model!");
 }
 
-const { values } = parseArgs({
+const { values, positionals } = parseArgs({
   args: Bun.argv.slice(2),
+  allowPositionals: true,
   options: {
     help: {
       type: "boolean",
@@ -23,13 +24,30 @@ const { values } = parseArgs({
   },
 });
 
-if (values.help || !values.email) {
-  console.info("Usage: bun resetPassword.ts --email <email>; bun resetPassword.ts -e <email>");
-  console.info("Example: bun resetPassword.ts user@example.com");
+const positionalEmail = positionals[0];
+
+if (values.help) {
+  console.info("Usage: bun run scripts/resetPassword.ts <email>");
+  console.info("       bun run scripts/resetPassword.ts --email <email>");
   process.exit(0);
 }
 
-const { email } = values;
+if (positionals.length > 1) {
+  console.error("Expected one email address.");
+  process.exit(1);
+}
+
+if (values.email && positionalEmail && values.email !== positionalEmail) {
+  console.error("Provide the email either positionally or with --email, not both.");
+  process.exit(1);
+}
+
+const email = values.email ?? positionalEmail;
+if (!email) {
+  console.error("An email address is required. Run with --help for usage.");
+  process.exit(1);
+}
+
 console.info(`Resetting password for user ${chalk.blue(email)}...`);
 
 try {

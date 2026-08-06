@@ -18,19 +18,19 @@
 
 import { Navigate, Route, Routes, useLocation } from "react-router";
 import styles from "./App.module.scss";
-import { Center, Loader, useMantineColorScheme } from "@mantine/core";
+import { Center, Loader } from "@mantine/core";
 import { Trans } from "@lingui/react/macro";
 
 import { useAuth } from "@domains/identity/contexts/AuthContext";
 // React
-import { lazy, useEffect, Suspense } from "react";
+import { lazy, Suspense } from "react";
 
 // Application Contexts
 import { useLayout } from "@/contexts/LayoutContext";
-import { useSettings } from "@/contexts/SettingsContext";
 
 // Application Components
 import GlobalTourManager from "@/core/design/components/Onboarding/GlobalTourManager";
+import { WorkflowSelectionProvider } from "@/core/interactions/WorkflowSelectionProvider";
 
 // --- Static Imports (Critical Entry Paths) ---
 // Identity Domain
@@ -68,6 +68,11 @@ const Keymap = lazy(() => import("@domains/identity/pages/Settings/Keymap"));
 const Profile = lazy(() => import("@domains/identity/pages/Settings/Profile"));
 const Settings = lazy(() => import("@domains/identity/pages/Settings/Settings"));
 const Users = lazy(() => import("@domains/identity/pages/Users/Users"));
+
+// Organizations Domain
+const Organizations = lazy(() => import("@domains/organizations/pages/Organizations"));
+const Organization = lazy(() => import("@domains/organizations/pages/Organization"));
+const OrganizationInvitation = lazy(() => import("@domains/organizations/pages/Invitation"));
 
 // Knowledge Domain
 const Agenda = lazy(() => import("./domains/knowledge/pages/Agenda/Agenda"));
@@ -115,26 +120,12 @@ const FullPageLoader = () => (
   </div>
 );
 
-export default function App() {
+function AppContent() {
   const { loggedIn, loading: loadingAuth, user } = useAuth();
   const { isMobile } = useLayout();
   const location = useLocation();
 
   const isSuperuser = userIsSuperuser(user);
-
-  const {
-    ui: {
-      theme: {
-        scheme: { get: scheme },
-      },
-    },
-  } = useSettings();
-
-  const { setColorScheme } = useMantineColorScheme();
-
-  useEffect(() => {
-    setColorScheme(scheme);
-  }, [scheme, setColorScheme]);
 
   if (loadingAuth) {
     return <FullPageLoader />;
@@ -156,6 +147,7 @@ export default function App() {
           <>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/invitations/:token" element={<OrganizationInvitation />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password/:token" element={<ResetPassword />} />
             <Route
@@ -175,6 +167,7 @@ export default function App() {
                   <Routes>
                     <Route path="login" element={<Navigate to="/" replace />} />
                     <Route path="register" element={<Navigate to="/" replace />} />
+                    <Route path="invitations/:token" element={<OrganizationInvitation />} />
                     {!isMobile && <Route index element={<Dashboard />} />}
                     {isMobile && <Route index element={<MobileDashboard />} />}
                     <Route path="constellation">
@@ -194,6 +187,10 @@ export default function App() {
                     </Route>
                     <Route path="sharing">
                       <Route index element={<Sharing />} />
+                    </Route>
+                    <Route path="organizations">
+                      <Route index element={<Organizations />} />
+                      <Route path=":slug" element={<Organization />} />
                     </Route>
                     <Route path="ideas">
                       <Route index element={<Ideas />} />
@@ -265,5 +262,20 @@ export default function App() {
         )}
       </Routes>
     </Suspense>
+  );
+}
+
+export default function App() {
+  const { user } = useAuth();
+  const workflowSelectionIdentity = user ? String(user.id) : "anonymous";
+
+  return (
+    <WorkflowSelectionProvider
+      key={workflowSelectionIdentity}
+      persistInSession={Boolean(user)}
+      sessionKey={`noeko:knowledge-selection:v1:${workflowSelectionIdentity}`}
+    >
+      <AppContent />
+    </WorkflowSelectionProvider>
   );
 }

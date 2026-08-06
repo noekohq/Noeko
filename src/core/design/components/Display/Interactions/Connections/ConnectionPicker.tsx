@@ -4,11 +4,17 @@ import { useDisclosure, useDebouncedValue } from "@mantine/hooks";
 import { useForm } from "@mantine/form";
 import { PlusIcon, XIcon, ArrowBendDownLeftIcon } from "@phosphor-icons/react";
 import { IConnectable } from "../../../../../../../shared/types/constellation";
+import type { INode } from "@/declarations/graph";
 import useFetch from "@core/hooks/useFetch";
 import { PaperSelection, usePaperSelection } from "@core/design/components/Paper/PaperSelection";
 import PaperButton from "@core/design/components/Paper/PaperButton";
 import PaperThing from "@core/design/components/Paper/Things/PaperThing";
-import { getThingPropsFromConnectable } from "@core/design/components/Paper/Things/thingUtils";
+import {
+  getNodeContent,
+  getNodeDescription,
+  getNodeTitle,
+  NodeIcon,
+} from "@infrastructure/graph/utils";
 import { useLayout } from "@/contexts/LayoutContext";
 import PaperDrawer from "@core/design/components/Paper/PaperDrawer";
 import { handleCreateIdea } from "@domains/knowledge/utils/ideas";
@@ -16,8 +22,11 @@ import { handleCreateIdea } from "@domains/knowledge/utils/ideas";
 interface ConnectionPickerProps {
   onSelect: (id: string) => Promise<void>;
   omitIds?: string[];
-  initialSuggestions?: IConnectable[];
+  initialSuggestions?: (IConnectable | INode)[];
   connectableId?: string;
+  triggerLabel?: string;
+  helperText?: string;
+  fullWidth?: boolean;
 }
 
 export function ConnectionPicker({
@@ -25,6 +34,9 @@ export function ConnectionPicker({
   omitIds = [],
   connectableId,
   initialSuggestions,
+  triggerLabel = "Add Connection",
+  helperText,
+  fullWidth = false,
 }: ConnectionPickerProps) {
   const { isMobile } = useLayout();
   const [opened, { toggle, close }] = useDisclosure(false);
@@ -84,23 +96,26 @@ export function ConnectionPicker({
     );
   };
 
-  const renderSuggestions = (things: IConnectable[]) => (
+  const renderSuggestions = (things: (IConnectable | INode)[]) => (
     <Group style={{ paddingTop: 8 }} wrap="wrap" gap="xs">
       {things.map((thing) => (
         <PaperThing
           key={thing.id.toString()}
-          {...getThingPropsFromConnectable(thing, {
-            state: "suggested",
-            action: {
-              icon: PlusIcon,
-              tooltip: "Connect",
-              onClick: async (id, e) => {
-                e.stopPropagation();
-                await onSelect(id);
-                handleClose();
-              },
+          id={thing.id.toString()}
+          title={getNodeTitle(thing) || "Untitled node"}
+          detail={getNodeDescription(thing)}
+          icon={NodeIcon(thing)}
+          preview={getNodeContent(thing)}
+          state="suggested"
+          action={{
+            icon: PlusIcon,
+            tooltip: "Connect",
+            onClick: async (id, e) => {
+              e.stopPropagation();
+              await onSelect(id);
+              handleClose();
             },
-          })}
+          }}
           onClick={async () => {
             await onSelect(thing.id.toString());
             handleClose();
@@ -111,35 +126,42 @@ export function ConnectionPicker({
   );
 
   const paperSelectionContent = (
-    <PaperSelection
-      onSearch={setSearchQuery}
-      onClear={() => setSearchQuery("")}
-      onClose={handleClose}
-      isLoading={loading}
-      formPrompt={(q) => `Create new idea "${q}"`}
-    >
-      <PaperSelection.Menu>
-        {showInitialSuggestions && initialSuggestions && renderSuggestions(initialSuggestions)}
+    <Stack gap="xs">
+      {helperText && (
+        <Text size="xs" c="dimmed">
+          {helperText}
+        </Text>
+      )}
+      <PaperSelection
+        onSearch={setSearchQuery}
+        onClear={() => setSearchQuery("")}
+        onClose={handleClose}
+        isLoading={loading}
+        formPrompt={(q) => `Create new idea "${q}"`}
+      >
+        <PaperSelection.Menu>
+          {showInitialSuggestions && initialSuggestions && renderSuggestions(initialSuggestions)}
 
-        {showTypeToSearch && (
-          <Text c="dimmed" size="xs" ta="left" py="sm">
-            Type to search your graph...
-          </Text>
-        )}
+          {showTypeToSearch && (
+            <Text c="dimmed" size="xs" ta="left" py="sm">
+              Type to search your graph...
+            </Text>
+          )}
 
-        {showFilteredSuggestions && renderSuggestions(filteredSuggestions)}
+          {showFilteredSuggestions && renderSuggestions(filteredSuggestions)}
 
-        {showNoResults && (
-          <Text c="dimmed" size="xs" ta="center" py="md">
-            No results found.
-          </Text>
-        )}
-      </PaperSelection.Menu>
+          {showNoResults && (
+            <Text c="dimmed" size="xs" ta="center" py="md">
+              No results found.
+            </Text>
+          )}
+        </PaperSelection.Menu>
 
-      <PaperSelection.Form title="New Connected Note">
-        <ConnectionCreateForm onSubmit={handleCreateSubmit} isSubmitting={isSubmitting} />
-      </PaperSelection.Form>
-    </PaperSelection>
+        <PaperSelection.Form title="New Connected Note">
+          <ConnectionCreateForm onSubmit={handleCreateSubmit} isSubmitting={isSubmitting} />
+        </PaperSelection.Form>
+      </PaperSelection>
+    </Stack>
   );
 
   if (isMobile) {
@@ -150,8 +172,9 @@ export function ConnectionPicker({
           onClick={toggle}
           size="md"
           withBorder
+          fullWidth={fullWidth}
         >
-          {opened ? "Cancel" : "Add Connection"}
+          {opened ? "Cancel" : triggerLabel}
         </PaperButton>
         <PaperDrawer title="New Connection" opened={opened} onClose={handleClose}>
           {paperSelectionContent}
@@ -169,6 +192,8 @@ export function ConnectionPicker({
       shadow="md"
       width={360}
       trapFocus
+      withinPortal
+      middlewares={{ flip: true, shift: true }}
     >
       <Popover.Target>
         <div>
@@ -177,12 +202,15 @@ export function ConnectionPicker({
             onClick={toggle}
             size="md"
             withBorder
+            fullWidth={fullWidth}
           >
-            {opened ? "Cancel" : "Add Connection"}
+            {opened ? "Cancel" : triggerLabel}
           </PaperButton>
         </div>
       </Popover.Target>
-      <Popover.Dropdown p="xs">{paperSelectionContent}</Popover.Dropdown>
+      <Popover.Dropdown p="xs" style={{ maxHeight: "calc(100dvh - 2rem)", overflow: "hidden" }}>
+        {paperSelectionContent}
+      </Popover.Dropdown>
     </Popover>
   );
 }

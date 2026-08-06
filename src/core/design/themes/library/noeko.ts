@@ -243,7 +243,11 @@ const noeko: IOverrideResolver = (t) => {
     variables: {
       "--mantine-color-body": lightColors.dark[9],
       "--mantine-color-text": lightColors.dark[0],
+      "--mantine-color-dimmed": lightColors.dark[3],
       "--mantine-color-default": lightColors.dark[8],
+      "--theme-accent": lightColors.green?.[6] ?? lightColors.dark[0],
+      "--theme-accent-text": lightColors.green?.[8] ?? lightColors.dark[0],
+      "--theme-accent-soft": `color-mix(in srgb, ${lightColors.green?.[6]} 16%, transparent)`,
       "--color-code-background": lightColors.dark[9],
       "--color-code-foreground": lightColors.dark[1],
       "--color-highlight": lightColors.highlight?.[6] ?? "--mantine-color-highlight-6",
@@ -294,7 +298,11 @@ const noeko: IOverrideResolver = (t) => {
     variables: {
       "--mantine-color-body": darkColors.dark[9],
       "--mantine-color-text": darkColors.dark[0],
+      "--mantine-color-dimmed": darkColors.dark[2],
       "--mantine-color-default": darkColors.dark[7],
+      "--theme-accent": darkColors.green?.[4] ?? darkColors.dark[0],
+      "--theme-accent-text": darkColors.green?.[3] ?? darkColors.dark[0],
+      "--theme-accent-soft": `color-mix(in srgb, ${darkColors.green?.[4]} 16%, transparent)`,
       "--ai-bg": darkColors.dark[9],
       "--color-code-background": darkColors.dark[9],
       "--color-code-foreground": darkColors.dark[1],

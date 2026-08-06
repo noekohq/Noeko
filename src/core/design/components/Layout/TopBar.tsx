@@ -3,7 +3,7 @@ import styles from "./TopBar.module.scss";
 import { MagnifyingGlassIcon, PushPinIcon, XIcon, UserIcon } from "@phosphor-icons/react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { ActionIcon, Center, Group, Loader, Stack, Text, Transition } from "@mantine/core";
-import { useLayout } from "@/contexts/LayoutContext";
+import { useLayoutScroll, useLayoutViewport } from "@/contexts/LayoutContext";
 import useSearchQuery from "@domains/discovery/hooks/useSearchQuery";
 import useRabbithole from "@domains/rabbitholes/hooks/useRabbithole";
 import PaperChip from "@core/design/components/Paper/PaperChip";
@@ -58,10 +58,8 @@ export default function TopBar() {
         },
       },
     });
-  const {
-    isMobile,
-    scroll: { isScrolled, scrollDirection },
-  } = useLayout();
+  const { isMobile } = useLayoutViewport();
+  const { isScrolled, scrollDirection } = useLayoutScroll();
 
   const [isFocused, setIsFocused] = useState(false);
   const [quip, setQuip] = useState(() => getRandomQuip());

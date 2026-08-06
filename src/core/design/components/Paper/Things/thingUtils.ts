@@ -89,7 +89,9 @@ export function getThingPropsFromRabbithole(
     title: overrides?.title ?? name,
     detail:
       overrides?.detail ??
-      `Updated ${formatDateTime(updatedAt)}, Created ${formatDateTime(createdAt)}`,
+      (rabbithole.description ||
+        rabbithole.contentSummary ||
+        `Updated ${formatDateTime(updatedAt)}, Created ${formatDateTime(createdAt)}`),
     icon: overrides?.icon ?? RabbitholeIcon,
     state: overrides?.state ?? "default",
     link: overrides?.link ?? `/rabbitholes/${id.toString()}`,

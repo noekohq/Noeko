@@ -20,6 +20,10 @@ const { values, positionals } = parseArgs({
       type: "string",
       short: "l",
     },
+    batchSize: {
+      type: "string",
+      short: "b",
+    },
     start: {
       type: "string",
     },
@@ -38,9 +42,17 @@ const { values, positionals } = parseArgs({
 
 const printHelp = () => {
   console.info("Usage:");
-  console.info("  bun run scripts/embeddings.ts status [--table idea] [--limit 100]");
-  console.info("  bun run scripts/embeddings.ts mark-stale [--table idea] [--reason provider-switch]");
-  console.info("  bun run scripts/embeddings.ts rebuild [--table idea] [--limit 100] [--force] [--dryRun]");
+  console.info(
+    "  bun run scripts/embeddings.ts status [--table idea] [--limit 1000] [--batchSize 100]"
+  );
+  console.info(
+    "  bun run scripts/embeddings.ts mark-stale [--table idea] [--reason provider-switch]"
+  );
+  console.info(
+    "  bun run scripts/embeddings.ts rebuild [--table idea] [--limit 1000] [--batchSize 100] [--force] [--dryRun]"
+  );
+  console.info("");
+  console.info("Without --limit, status and rebuild process every record in the selected tables.");
 };
 
 const getSelectedModels = () => {
@@ -56,11 +68,22 @@ const getSelectedModels = () => {
 };
 
 const getLimit = () => {
-  const limit = Number(values.limit ?? 100);
+  if (values.limit === undefined) {
+    return undefined;
+  }
+  const limit = Number(values.limit);
   if (!Number.isInteger(limit) || limit < 1) {
     throw new Error(`Limit must be a positive integer. Received: ${values.limit}`);
   }
   return limit;
+};
+
+const getBatchSize = () => {
+  const batchSize = Number(values.batchSize ?? 100);
+  if (!Number.isInteger(batchSize) || batchSize < 1) {
+    throw new Error(`Batch size must be a positive integer. Received: ${values.batchSize}`);
+  }
+  return batchSize;
 };
 
 const getStart = () => {
@@ -71,20 +94,51 @@ const getStart = () => {
   return start;
 };
 
+const forEachRecordBatch = async (
+  model: (typeof embeddableModels)[number],
+  processRecord: (record: Awaited<ReturnType<typeof model.getRecords>>[number]) => Promise<void>
+) => {
+  const limit = getLimit();
+  const batchSize = getBatchSize();
+  let start = getStart();
+  let processed = 0;
+
+  while (limit === undefined || processed < limit) {
+    const requested = Math.min(batchSize, limit === undefined ? batchSize : limit - processed);
+    const records = await model.getRecords({ limit: requested, start });
+    if (records.length === 0) {
+      break;
+    }
+
+    for (const record of records) {
+      await processRecord(record);
+    }
+
+    processed += records.length;
+    start += records.length;
+    console.info(`${model.table}: scanned=${processed}`);
+
+    if (records.length < requested) {
+      break;
+    }
+  }
+
+  return processed;
+};
+
 const runStatus = async () => {
   const embedder = getEmbedder();
   for (const model of getSelectedModels()) {
-    const records = await model.getRecords({ limit: getLimit(), start: getStart() });
     let ready = 0;
     let stale = 0;
     let failed = 0;
     let skipped = 0;
 
-    for (const record of records) {
+    const sampled = await forEachRecordBatch(model, async (record) => {
       const content = model.getEmbeddableContent(record);
       if (!content) {
         skipped += 1;
-        continue;
+        return;
       }
       if (record.embeddingsStatus === "failed") {
         failed += 1;
@@ -93,10 +147,10 @@ const runStatus = async () => {
       } else {
         stale += 1;
       }
-    }
+    });
 
     console.info(
-      `${model.table}: ready=${ready} stale=${stale} failed=${failed} skipped=${skipped} sampled=${records.length}`
+      `${model.table}: ready=${ready} stale=${stale} failed=${failed} skipped=${skipped} sampled=${sampled}`
     );
   }
 };
@@ -114,27 +168,26 @@ const rebuild = async () => {
   const force = values.force ?? false;
 
   for (const model of getSelectedModels()) {
-    const records = await model.getRecords({ limit: getLimit(), start: getStart() });
     let rebuilt = 0;
     let current = 0;
     let failed = 0;
     let skipped = 0;
 
-    for (const record of records) {
+    const sampled = await forEachRecordBatch(model, async (record) => {
       const content = model.getEmbeddableContent(record);
       if (!content) {
         skipped += 1;
-        continue;
+        return;
       }
 
       if (!force && isEmbeddingCurrent(record, embedder, content)) {
         current += 1;
-        continue;
+        return;
       }
 
       if (dryRun) {
         rebuilt += 1;
-        continue;
+        return;
       }
 
       try {
@@ -148,10 +201,10 @@ const rebuild = async () => {
         await model.updateEmbeddingFailure(record, embedder, content, error);
         failed += 1;
       }
-    }
+    });
 
     console.info(
-      `${model.table}: rebuilt=${rebuilt} current=${current} failed=${failed} skipped=${skipped} sampled=${records.length}${dryRun ? " dryRun=true" : ""}`
+      `${model.table}: rebuilt=${rebuilt} current=${current} failed=${failed} skipped=${skipped} sampled=${sampled}${dryRun ? " dryRun=true" : ""}`
     );
   }
 };

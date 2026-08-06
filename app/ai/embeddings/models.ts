@@ -22,8 +22,18 @@ export type EmbeddableModelAdapter<T extends EmbeddableRecord = EmbeddableRecord
   table: EmbeddableTable;
   getRecords(options?: { limit?: number; start?: number }): Promise<T[]>;
   getEmbeddableContent(record: T): string | null;
-  updateEmbedding(record: T, embedder: EmbeddingsProvider, content: string, vector: EmbeddingVector): Promise<unknown>;
-  updateEmbeddingFailure(record: T, embedder: EmbeddingsProvider, content: string, error: unknown): Promise<unknown>;
+  updateEmbedding(
+    record: T,
+    embedder: EmbeddingsProvider,
+    content: string,
+    vector: EmbeddingVector
+  ): Promise<unknown>;
+  updateEmbeddingFailure(
+    record: T,
+    embedder: EmbeddingsProvider,
+    content: string,
+    error: unknown
+  ): Promise<unknown>;
   markStale(reason?: string): Promise<void>;
 };
 
@@ -38,10 +48,13 @@ const getTableRecords = async <T extends EmbeddableRecord>(
 
   const limit = options.limit ?? 100;
   const start = options.start ?? 0;
-  const [records = []] = await db.query<[T[]]>(`SELECT * FROM ${table} LIMIT $limit START $start;`, {
-    limit,
-    start,
-  });
+  const [records = []] = await db.query<[T[]]>(
+    `SELECT * FROM ${table} ORDER BY id LIMIT $limit START $start;`,
+    {
+      limit,
+      start,
+    }
+  );
   return records;
 };
 

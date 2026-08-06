@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type Surreal from "surrealdb";
+import type { AppDatabase } from "../surreal";
 import { migrations } from ".";
 import type { Migration, MigrationRecord } from "./types";
 
@@ -24,7 +24,7 @@ const getAppVersion = () => {
   return process.env.npm_package_version ?? null;
 };
 
-const getAppliedMigrations = async (db: Surreal): Promise<MigrationRecord[]> => {
+const getAppliedMigrations = async (db: AppDatabase): Promise<MigrationRecord[]> => {
   try {
     const [records = []] = await db.query<[MigrationRecord[]]>(
       "SELECT migrationId, checksum, description, appliedAt, durationMs, appVersion FROM schema_migration ORDER BY migrationId ASC;"
@@ -36,7 +36,7 @@ const getAppliedMigrations = async (db: Surreal): Promise<MigrationRecord[]> => 
   }
 };
 
-const getAppliedMigrationMap = async (db: Surreal) => {
+const getAppliedMigrationMap = async (db: AppDatabase) => {
   const applied = await getAppliedMigrations(db);
   return new Map(applied.map((record) => [record.migrationId, record]));
 };
@@ -51,7 +51,7 @@ const validateMigrationList = () => {
   }
 };
 
-const recordMigration = async (db: Surreal, migration: Migration, durationMs: number) => {
+const recordMigration = async (db: AppDatabase, migration: Migration, durationMs: number) => {
   const appVersion = getAppVersion();
   const appVersionField = appVersion ? ", appVersion: $appVersion" : "";
   await db.query(
@@ -75,13 +75,13 @@ const recordMigration = async (db: Surreal, migration: Migration, durationMs: nu
   );
 };
 
-const removeMigrationRecord = async (db: Surreal, migration: Migration) => {
+const removeMigrationRecord = async (db: AppDatabase, migration: Migration) => {
   await db.query("DELETE schema_migration WHERE migrationId = $migrationId;", {
     migrationId: migration.id,
   });
 };
 
-export const getMigrationStatus = async (db: Surreal): Promise<MigrationStatus[]> => {
+export const getMigrationStatus = async (db: AppDatabase): Promise<MigrationStatus[]> => {
   validateMigrationList();
   const applied = await getAppliedMigrationMap(db);
 
@@ -98,7 +98,7 @@ export const getMigrationStatus = async (db: Surreal): Promise<MigrationStatus[]
   });
 };
 
-export const runMigrations = async (db: Surreal) => {
+export const runMigrations = async (db: AppDatabase) => {
   validateMigrationList();
   const applied = await getAppliedMigrationMap(db);
 
@@ -124,7 +124,7 @@ export const runMigrations = async (db: Surreal) => {
   console.info("Database migrations are up to date.");
 };
 
-export const rollbackMigrations = async (db: Surreal, steps = 1) => {
+export const rollbackMigrations = async (db: AppDatabase, steps = 1) => {
   validateMigrationList();
   if (!Number.isInteger(steps) || steps < 1) {
     throw new Error(`Rollback steps must be a positive integer. Received: ${steps}`);

@@ -8,6 +8,27 @@ Please refer to `./AGENTS.local.md` for additional context on the local environm
 
 We use `bun`, not `pnpm`, `npm`, or `yarn` for dependency management and as a runtime.
 
+## Module Living Documentation
+
+Major domains and cross-cutting capability modules may keep two living documents in their root
+directory:
+
+- `<MODULE_NAME>.md` describes the module's durable purpose: the user jobs it serves, vocabulary,
+  boundaries, information architecture, important workflows, invariants, and relationships with
+  other modules.
+- `TODO.md` tracks delivery: verified current state, near-term work, later directions, known debt,
+  and open product or technical decisions.
+
+Before changing a documented module, read both files completely. Keep the purpose document grounded
+in outcomes rather than the current component tree, and keep implementation status out of it unless
+the status is necessary to explain a constraint. Put changing priorities and progress in `TODO.md`.
+
+When work materially changes a module's purpose, boundaries, vocabulary, architecture, or roadmap,
+update the corresponding document in the same change. Preserve unresolved product questions instead
+of silently choosing an answer. Cross-link related module documents so shared responsibilities remain
+discoverable, and do not duplicate a detailed specification across multiple modules; designate one
+document as the owner and summarize the dependency elsewhere.
+
 # Testing
 
 Tests for the backend (Express API) are located in `./tests/*`. Tests for the frontend (React) are collocated inline with components (e.g., `Component.test.tsx`).

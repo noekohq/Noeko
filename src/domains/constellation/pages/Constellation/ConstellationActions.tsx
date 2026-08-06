@@ -1,12 +1,18 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import styles from "./ConstellationActions.module.scss";
-import { IGraph } from "@/declarations/graph";
+import { IGraph, INode } from "@/declarations/graph";
 import { useGraph } from "@domains/constellation/contexts/GraphContext";
 import { Button, Group } from "@mantine/core";
+import { ArrowsLeftRightIcon, SparkleIcon, TextTIcon } from "@phosphor-icons/react";
 import Search from "@domains/discovery/components/Search/Search";
 import { ISearchResult } from "../../../../../shared/types/search";
 import { useSearch } from "@domains/discovery/contexts/SearchContext";
 import { Trans } from "@lingui/react/macro";
+import {
+  createSelectionHandoff,
+  isKnowledgeRefType,
+  useWorkflowSelection,
+} from "@core/interactions";
 
 type IConstellationActionsProps = {
   graphData: IGraph;
@@ -14,7 +20,7 @@ type IConstellationActionsProps = {
 
 export default function ConstellationActions({ graphData }: IConstellationActionsProps) {
   const {
-    selected: { add: addSelected, remove: removeSelected },
+    selected: { addMany: addSelected, removeMany: removeSelected, set: setSelected },
     focused: { set: setFocused },
     highlighted: { set: setHighlighted },
     loading: { set: setLoading },
@@ -25,12 +31,19 @@ export default function ConstellationActions({ graphData }: IConstellationAction
       loading: { get: searchIsLoading },
       results: { get: searchResults },
       topResult: { get: topResult },
+      query: { get: searchQuery },
     },
   } = useSearch();
+  const workflowSelection = useWorkflowSelection();
+  const graphNodeIds = useMemo(
+    () => new Set(graphData.nodes.map((node) => node.id.toString())),
+    [graphData.nodes]
+  );
+  const filterToLoadedGraph = useCallback((id: string) => graphNodeIds.has(id), [graphNodeIds]);
 
   useEffect(() => {
     setLoading(searchIsLoading);
-  }, [searchIsLoading]);
+  }, [searchIsLoading, setLoading]);
 
   useEffect(() => {
     if (searchResults) {
@@ -38,7 +51,7 @@ export default function ConstellationActions({ graphData }: IConstellationAction
     } else {
       setHighlighted([]);
     }
-  }, [searchResults]);
+  }, [searchResults, setHighlighted]);
 
   // Focus the top result when it changes
   useEffect(() => {
@@ -50,9 +63,7 @@ export default function ConstellationActions({ graphData }: IConstellationAction
   const handleSelectAllResults = useCallback(
     (results: ISearchResult[]) => {
       if (results) {
-        results.forEach((r) => {
-          addSelected(r.id.toString());
-        });
+        addSelected(results.map((result) => result.id.toString()));
       }
     },
     [addSelected]
@@ -61,17 +72,53 @@ export default function ConstellationActions({ graphData }: IConstellationAction
   const handleDeselectAllResults = useCallback(
     (results: ISearchResult[]) => {
       if (results) {
-        results.forEach((r) => {
-          removeSelected(r.id.toString());
-        });
+        removeSelected(results.map((result) => result.id.toString()));
       }
     },
     [removeSelected]
   );
 
+  const handleUseAsWorkingSet = useCallback(
+    (results: ISearchResult[]) => {
+      const items = results.flatMap((result) => {
+        const node = result.value as INode;
+        return isKnowledgeRefType(node.type) ? [{ id: node.id.toString(), type: node.type }] : [];
+      });
+      workflowSelection.replace(
+        createSelectionHandoff({
+          items,
+          origin: {
+            surface: "constellation-search",
+            label: "Constellation search",
+            query: searchQuery,
+          },
+        })
+      );
+      setSelected(items.map((item) => item.id));
+    },
+    [searchQuery, setSelected, workflowSelection]
+  );
+
   return (
     <div className={`${styles.ui}`}>
       <Search
+        resultFilter={filterToLoadedGraph}
+        resultArtifacts={(result) => {
+          const semantic = result.debug?.source === "semantic";
+          const artifacts = [
+            {
+              icon: semantic ? SparkleIcon : TextTIcon,
+              label: semantic ? "Semantic match" : "Text match",
+            },
+          ];
+          if (typeof result.debug?.semanticScore === "number") {
+            artifacts.push({
+              icon: ArrowsLeftRightIcon,
+              label: `${Math.round(result.debug.semanticScore * 100)}% similar`,
+            });
+          }
+          return artifacts;
+        }}
         resultsHeader={(results) => {
           if (!results || results.length === 0) return null;
           return (
@@ -93,6 +140,15 @@ export default function ConstellationActions({ graphData }: IConstellationAction
                 variant="light"
               >
                 <Trans>Deselect All</Trans>
+              </Button>
+              <Button
+                onClick={() => handleUseAsWorkingSet(results)}
+                size="xs"
+                radius="lg"
+                color="gray"
+                variant="light"
+              >
+                Use as Working Set
               </Button>
             </Group>
           );

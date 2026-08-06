@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
-import { useLayout } from "../../../contexts/LayoutContext";
+import { useLayout, useLayoutScrollRegistration } from "../../../contexts/LayoutContext";
 import styles from "./PageWrapper.module.scss";
-import { useAuth } from "@/domains/identity";
 import { useLandscape } from "../../../contexts/LandscapeContext";
 
 type PageWrapperProps = {
@@ -10,7 +9,6 @@ type PageWrapperProps = {
 
 export default function PageWrapper({ children }: PageWrapperProps) {
   const {
-    isMobile,
     elements: {
       leftSidebar: {
         mode: { get: leftMode },
@@ -19,10 +17,8 @@ export default function PageWrapper({ children }: PageWrapperProps) {
         mode: { get: rightMode },
       },
     },
-    scroll: { setScrollableElement },
   } = useLayout();
-  const { user } = useAuth();
-
+  const { setScrollableElement } = useLayoutScrollRegistration();
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -59,20 +55,12 @@ export default function PageWrapper({ children }: PageWrapperProps) {
   const leftModeClass = leftModeToClass[leftMode];
   const rightModeClass = rightModeToClass[rightMode];
 
-  const showMobileBar = () => {
-    if (user?.settings.isNew) {
-      return false;
-    }
-    return true;
-  };
-
   return (
     <div
       className={`${styles.pageWrapper} ${hasEnteredRabbithole ? styles.hasRabbithole : ""} ${leftModeClass} ${rightModeClass}`}
       ref={wrapperRef}
     >
       {children}
-      {/*{isMobile && showMobileBar() && <MobileBar />}*/}
     </div>
   );
 }

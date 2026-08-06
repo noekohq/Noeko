@@ -12,11 +12,12 @@ export interface UseApiQueryConfig<TData> {
 export function useApiQuery<TData>({ url, queryKey, query, options }: UseApiQueryConfig<TData>) {
   return useQuery({
     queryKey,
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       if (!url) throw new Error("URL is required but was null");
 
       const res = await api.get<DefaultResponse<TData>>(url, {
         params: query,
+        signal,
       });
 
       return res.data.data as TData;

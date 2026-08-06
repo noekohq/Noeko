@@ -79,9 +79,7 @@ export const SpyglassStreamRequestSchema = z.object({
   history: z.array(SpyglassHistoryItemSchema).max(50).optional(),
 });
 
-export const SpyglassRunCreateRequestSchema = SpyglassStreamRequestSchema.extend({
-  deepAnalysis: z.literal(true),
-});
+export const SpyglassRunCreateRequestSchema = SpyglassStreamRequestSchema;
 
 export const SpyglassSaveRequestSchema = z.object({
   baseQuery: z.string().trim().min(1).max(10_000),
