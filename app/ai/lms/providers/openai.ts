@@ -204,10 +204,16 @@ export default class OpenAIProvider implements LMProvider {
       },
       isWrapped: true,
       unwrap: (value) => {
-        if (!value || typeof value !== "object" || !("value" in value)) {
-          throw new Error("OpenAI structured response did not contain its wrapped value.");
+        if (value && typeof value === "object" && "value" in value) {
+          return (value as { value: unknown }).value;
         }
-        return (value as { value: unknown }).value;
+
+        // `strict: false` is required for the existing Lingui-derived schemas.
+        // In that mode, Responses occasionally returns the original non-object
+        // root (for example, the findings array) instead of the compatibility
+        // wrapper requested above. Both forms represent the same application
+        // value, so preserve the raw root rather than rejecting a valid result.
+        return value;
       },
     };
   }
