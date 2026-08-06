@@ -20,10 +20,10 @@ Personal API credentials are bearer tokens and begin with `noeko_live_`:
 Authorization: Bearer noeko_live_...
 ```
 
-Create credentials through the browser-authenticated `/api/v1/credentials` endpoint. The complete
-secret is returned once. Store it in a secret manager or environment variable, never in source
-control. Credential-management routes require a browser session token; API credentials cannot mint
-or revoke other credentials.
+Create credentials in **Settings → Developer & Automation**, or through the browser-authenticated
+`/api/v1/credentials` endpoint. The complete secret is returned once. Store it in a secret manager
+or environment variable, never in source control. Credential-management routes require a browser
+session token; API credentials cannot mint or revoke other credentials.
 
 Example:
 

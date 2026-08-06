@@ -6,6 +6,8 @@
 - Browser-authenticated users can create, list, and revoke scoped personal API credentials.
 - Credential secrets are hashed at rest and returned only when created.
 - `/me` and idea CRUD are available with scope checks and user-level authorization.
+- Settings provides a Developer & Automation section for creating and revoking API credentials,
+  creating and managing webhooks, sending test events, and inspecting deliveries.
 - User-scoped webhook subscriptions support create, list, retrieve, update, delete, test delivery,
   and delivery inspection.
 - Domain events and webhook delivery jobs are durable SurrealDB records with lease-based recovery.
@@ -15,7 +17,6 @@
 
 ## Near-term work
 
-- Add the settings UI for creating and revoking credentials and managing webhooks.
 - Add integration tests for credential authentication, idea CRUD, webhook ownership, signatures,
   delivery retry behavior, and private-network destination blocking.
 - Move every interface idea mutation through `IdeaService`; create uses it today, but other paths
