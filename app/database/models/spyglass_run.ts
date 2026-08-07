@@ -16,14 +16,24 @@ const toRecordId = (id: string | AnyRecordId) =>
 
 const withWriteConflictRetry = async <T>(operation: () => Promise<T>): Promise<T> => {
   let lastError: unknown;
-  for (let attempt = 1; attempt <= 8; attempt += 1) {
+  for (let attempt = 1; attempt <= 10; attempt += 1) {
     try {
       return await operation();
     } catch (error) {
       lastError = error;
       const message = error instanceof Error ? error.message : String(error);
-      if (!message.includes("read or write conflict") || attempt === 8) throw error;
-      await new Promise((resolve) => setTimeout(resolve, attempt * 5));
+      const isWriteConflict =
+        message.includes("read or write conflict") ||
+        message.includes("Transaction conflict") ||
+        message.includes("Resource busy");
+      if (!isWriteConflict || attempt === 10) throw error;
+
+      // SurrealDB v3 reports write contention as "Transaction conflict:
+      // Resource busy". Durable Spyglass runs can append many findings at once,
+      // so use a bounded exponential backoff before giving up on a transient
+      // conflict.
+      const delay = Math.min(25 * 2 ** (attempt - 1), 500);
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
   throw lastError;
