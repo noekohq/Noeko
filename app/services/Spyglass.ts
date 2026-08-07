@@ -1064,7 +1064,7 @@ export default class Spyglass {
         findingsPrompt.addBlock(`Result ${i + 1}`, s, 2);
       });
 
-      const lm = getLM().withModel("simple").withThinking(-1);
+      const lm = getLM().withModel("simple");
       for await (const result of lm.generateJSONStream(
         findingsPrompt.get(),
         this.findingsSchema(results.map((r) => r.id.toString()))
@@ -1154,7 +1154,7 @@ export default class Spyglass {
         return;
       }
 
-      const lm = getLM().withModel("simple").withThinking(-1);
+      const lm = getLM().withModel("simple");
 
       const findingPromises = results.map((result) => {
         return (async () => {
@@ -1241,7 +1241,7 @@ export default class Spyglass {
         overviewPrompt.addBlock(`Finding ${i + 1}`, s, 2);
       });
 
-      const lm = getLM().withModel("simple");
+      const lm = getLM().withModel("advanced").withThinking();
       const result = await lm.generateJSON<ISearchOverview["overview"]>(overviewPrompt.get(), {
         type: LMSchemaType.STRING,
         description: "A direct response to the user's query based on the findings.",
@@ -1795,7 +1795,7 @@ export default class Spyglass {
     try {
       const overviewPrompt = this.glimpseModePromptBuilder(query, scope, intent, history);
       const schema = this.glimpseModeSchema(scope);
-      const lm = getLM().withModel("simple");
+      const lm = getLM().withModel("simple").withThinking();
       for await (const chunk of lm.generateJSONStream(overviewPrompt.get(), schema)) {
         yield chunk;
       }
@@ -1904,7 +1904,7 @@ export default class Spyglass {
         intent,
         history
       );
-      const lm = getLM().withModel("simple").withThinking();
+      const lm = getLM().withModel("advanced").withThinking();
       for await (const chunk of lm.generateStream(overviewPrompt.get())) {
         yield chunk;
       }
@@ -1938,7 +1938,7 @@ export default class Spyglass {
 
       const intent = await this.getIntentConfigFromQuery(
         query,
-        deepAnalysis ? "fast-accurate" : "simple",
+        "simple",
         history
       );
       if (!intent) {

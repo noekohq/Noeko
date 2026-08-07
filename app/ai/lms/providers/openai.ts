@@ -6,7 +6,7 @@ import { SchemaConverter } from "../helpers";
 import { LMUtils } from "../utils";
 
 const ModelMap: IModelMap = {
-  simple: "gpt-5-nano",
+  simple: "gpt-5.6-luna",
   advanced: "gpt-5.6-terra",
   "fast-accurate": "gpt-5-mini",
   general: "gpt-5-mini",
