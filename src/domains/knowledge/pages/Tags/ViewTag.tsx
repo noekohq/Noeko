@@ -646,15 +646,6 @@ export default function ViewTag() {
                   </Alert>
                 )}
                 {(!things || things.length === 0) && (
-<<<<<<< HEAD
-                  <Text size="sm">
-                    {isMobile ? (
-                      <Trans>Nothing here yet :/</Trans>
-                    ) : (
-                      <Trans>Nothing yet, try dragging something here to tag it!</Trans>
-                    )}
-                  </Text>
-=======
                   <div className={styles.emptyState}>
                     <TagIcon size={24} weight="fill" />
                     <Stack gap={4}>
@@ -668,7 +659,6 @@ export default function ViewTag() {
                       </Text>
                     </Stack>
                   </div>
->>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
                 )}
               </Stack>
             </Stack>

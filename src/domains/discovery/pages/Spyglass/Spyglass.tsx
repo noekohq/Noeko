@@ -12,6 +12,9 @@ import {
   Title,
   Tooltip,
 } from "@mantine/core";
+import { t } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
+import { Plural, Trans } from "@lingui/react/macro";
 import GlimpseModeDisplay from "@domains/discovery/components/Spyglass/GlimpseModeDisplay";
 import styles from "./Spyglass.module.scss";
 import { useInteraction } from "@/contexts/InteractionContext";
@@ -43,11 +46,6 @@ import { useSearch } from "@domains/discovery/contexts/SearchContext";
 import GlimpseNavigation from "@domains/discovery/components/Spyglass/GlimpseNavigation";
 import DeepFocusNavigation from "@domains/discovery/components/Spyglass/DeepFocusNavigation";
 import ScopeDisplay from "@domains/discovery/components/Search/ScopeBuilder/ScopeDisplay";
-<<<<<<< HEAD
-import { useLingui } from "@lingui/react";
-import { t } from "@lingui/core/macro";
-import { Trans, Plural } from "@lingui/react/macro";
-=======
 import { api } from "@infrastructure/api/client";
 import { formatDateTime } from "@core/utils/formatting";
 import type { ISpyglassLightHistoryResponse } from "../../../../../app/database/models/spyglass_record";
@@ -69,7 +67,6 @@ const activityStatusLabel = (activity: SpyglassActivity) => {
   if (activity.status === "cancelled") return "Cancelled";
   return "Failed";
 };
->>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 
 export default function Spyglass() {
   const { i18n } = useLingui();
@@ -364,15 +361,8 @@ export default function Spyglass() {
                       </Trans>
                     </Text>
                     <Text size="xs" c="dimmed">
-<<<<<<< HEAD
-                      <Trans>
-                        This feature will remain free during it's beta stage. Rate limits may apply
-                        in future versions.
-                      </Trans>
-=======
                       This feature will remain free during its beta stage. Rate limits may apply in
                       future versions.
->>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
                     </Text>
                     <ActionIcon
                       aria-label="Send Spyglass feedback"
@@ -707,52 +697,6 @@ export default function Spyglass() {
                 </div>
               )}
           </div>
-<<<<<<< HEAD
-
-          {!loading && (
-            <div className={`${styles.userInput}`}>
-              <div
-                className={`${styles.textboxContainer} ${initialized ? styles.initialized : ""}`}
-              >
-                <Textbox
-                  value={query}
-                  onSubmit={() => {
-                    handleSubmit();
-                  }}
-                  onReset={() => {
-                    reset();
-                    uninitialize();
-                    setQuery("");
-                  }}
-                  onChange={(v) => {
-                    setQuery(v);
-                  }}
-                  placeholder={
-                    initialized
-                      ? i18n._(t`Ask a follow-up question...`)
-                      : i18n._(t`Ask your thoughts anything...`)
-                  }
-                  initialized={initialized}
-                  deepAnalysis={deepAnalysis}
-                  setDeepAnalysis={(v) => {
-                    setDeepAnalysis(v);
-                  }}
-                  scope={scope}
-                  onScopeChange={setScope}
-                />
-              </div>
-              {hasScope && !initialized && (
-                <div className={styles.scope}>
-                  <Text fw="bold" c="dimmed" size="sm" mb="xs">
-                    <Trans>FILTERS</Trans>
-                  </Text>
-                  <ScopeDisplay />
-                </div>
-              )}
-            </div>
-          )}
-=======
->>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
         </div>
       </Content>
       <Nav />

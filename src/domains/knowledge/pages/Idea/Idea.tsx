@@ -512,13 +512,7 @@ export default function Idea() {
               >
                 <Flex gap="xs" direction={"row"} align="center" wrap={"wrap"}>
                   <Tooltip
-<<<<<<< HEAD
-                    label={i18n._(
-                      t`Owned by ${ideaToRender?.author ? userFormattedName(ideaToRender?.author) : i18n._(t`Unknown Author`)}`
-                    )}
-=======
                     label={`Owned by ${owner?.name || (ideaToRender?.author ? userFormattedName(ideaToRender.author) : "Unknown owner")}`}
->>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
                     transitionProps={{
                       transition: "rotate-right",
                       duration: 200,
@@ -527,16 +521,10 @@ export default function Idea() {
                     <Group gap="4px" align="center">
                       <FeatherIcon color="var(--mantine-color-dark-3)" size={12} weight="bold" />
                       <Text size="xs" fw="500">
-<<<<<<< HEAD
-                        {ideaToRender?.author
-                          ? userFormattedName(ideaToRender?.author)
-                          : i18n._(t`Unknown Author`)}
-=======
                         {owner?.name ||
                           (ideaToRender?.author
                             ? userFormattedName(ideaToRender.author)
                             : "Unknown owner")}
->>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
                       </Text>
                     </Group>
                   </Tooltip>

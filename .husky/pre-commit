@@ -1,21 +1,48 @@
 #!/usr/bin/env sh
 
+child_pid=
+
+handle_interrupt() {
+  exit_code=$1
+  trap - INT TERM
+  if [ -n "$child_pid" ]; then
+    kill -INT "$child_pid" 2>/dev/null || true
+    wait "$child_pid" 2>/dev/null || true
+  fi
+  exit "$exit_code"
+}
+
+run() {
+  "$@" &
+  child_pid=$!
+  if wait "$child_pid"; then
+    status=0
+  else
+    status=$?
+  fi
+  child_pid=
+  return "$status"
+}
+
+trap 'handle_interrupt 130' INT
+trap 'handle_interrupt 143' TERM
+
 # TODO: Fix broken linting
 # Run lint-staged first (format and lint)
 # echo "📝 Running lint-staged..."
 # bunx lint-staged || exit 1
 
 # i18n build localization
-bun run i18n:extract
-git add "src/locales/**/*.po"
-bun run i18n:compile
+run bun run i18n:extract
+run git add "src/locales/**/*.po"
+run bun run i18n:compile
 
 # Run test suite
 echo "🧪 Running test suite..."
-bun run test || exit 1
+run bun run test || exit 1
 
 # Build client
 echo "🏗️  Building client..."
-bun run build || exit 1
+run bun run build || exit 1
 
 echo "✅ All pre-commit checks passed!"

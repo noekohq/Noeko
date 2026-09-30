@@ -13,6 +13,9 @@ import {
   Checkbox,
   HoverCard,
 } from "@mantine/core";
+import { t } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
+import { Trans } from "@lingui/react/macro";
 import useFetch from "@core/hooks/useFetch";
 import { useForm } from "@mantine/form";
 import { Link, useNavigate, useSearchParams } from "react-router";
@@ -23,17 +26,11 @@ import { validateEmail } from "@core/utils/data";
 import StageIndicator from "@core/design/components/Utils/StageIndicator";
 import { useEffect, useState } from "react";
 import { QuestionIcon } from "@phosphor-icons/react";
-<<<<<<< HEAD
-import { t } from "@lingui/core/macro";
-import { Trans } from "@lingui/react/macro";
-import { useLingui } from "@lingui/react";
-=======
 import type {
   IOrganization,
   IOrganizationInvitationPreview,
 } from "../../../../../shared/types/organization";
 import { useApiQuery } from "@/core/hooks/useApiQuery";
->>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 
 export default function Register() {
   const { i18n } = useLingui();
@@ -151,14 +148,9 @@ export default function Register() {
     onError: (error: any) => {
       console.error(error);
       showNotification({
-<<<<<<< HEAD
-        title: i18n._(t`Registration Failed`),
-        message: i18n._(t`An error occurred during registration`),
-=======
         title: "Registration Failed",
         message: error?.response?.data?.message || "An error occurred during registration",
         color: "red",
->>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
       });
     },
   });
@@ -278,15 +270,8 @@ export default function Register() {
               </Grid.Col>
               <Grid.Col span={{ sm: 12 }}>
                 <Text>
-<<<<<<< HEAD
-                  <Trans>
-                    Sorry, it looks like this referral code is invalid. Please use a valid code or
-                    join the <a href="https://noeko.neoko.app">waitlist</a>.
-                  </Trans>
-=======
                   Sorry, it looks like this invitation is invalid or expired. Please ask for a new
                   invitation or join the <a href="https://waitlist.noeko.app">waitlist</a>.
->>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
                 </Text>
               </Grid.Col>
               <Grid.Col span={{ sm: 12 }}>

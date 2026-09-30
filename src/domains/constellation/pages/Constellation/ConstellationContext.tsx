@@ -3,13 +3,6 @@ import type { IGraph, INode } from "@/declarations/graph";
 import { useGraph } from "@domains/constellation/contexts/GraphContext";
 import { useSearch } from "@domains/discovery/contexts/SearchContext";
 import { useLandscape } from "@/contexts/LandscapeContext";
-<<<<<<< HEAD
-import { IConstellationLoader } from "../../../../../shared/types/constellation";
-import { RecordId } from "surrealdb";
-import { useLingui } from "@lingui/react";
-import { t } from "@lingui/core/macro";
-import { Trans } from "@lingui/react/macro";
-=======
 import {
   ConstellationSidebar,
   SharedModeControl,
@@ -24,7 +17,6 @@ import {
   getNodeTitle,
   NodeIcon,
 } from "@infrastructure/graph/utils";
->>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 
 type ConstellationContextProps = {
   graph: IGraph;
@@ -49,13 +41,8 @@ export default function ConstellationContext({
   onClearSelection,
   onMutationComplete,
 }: ConstellationContextProps) {
-<<<<<<< HEAD
-  const { i18n } = useLingui();
-  const { nodes, edges } = graph || { nodes: [], edges: [] };
-=======
   const { nodes, edges } = graph;
   const nodeById = useMemo(() => new Map(nodes.map((node) => [node.id.toString(), node])), [nodes]);
->>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
   const {
     selected: {
       get: selected,

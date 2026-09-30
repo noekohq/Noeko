@@ -156,35 +156,6 @@ export default function Tags() {
         <TopBar />
         <LeftSidebar />
         <Content>
-<<<<<<< HEAD
-          <Grid>
-            <Grid.Col span={{ sm: 12 }}>
-              <Group>
-                <Title>
-                  <Trans>Your tags</Trans>
-                </Title>
-                <ActionIcon
-                  variant="light"
-                  color="gray"
-                  onClick={() => {
-                    setAddingTag(true);
-                  }}
-                >
-                  <PlusIcon weight="bold" />
-                </ActionIcon>
-              </Group>
-            </Grid.Col>
-            <Grid.Col span={{ sm: 12 }}>
-              <TextInput
-                placeholder={i18n._(t`Filter tags by name or description`)}
-                value={filterQuery}
-                onChange={(event) => setFilterQuery(event.currentTarget.value)}
-                mb="md" // Added margin bottom for spacing
-              />
-            </Grid.Col>
-            <Grid.Col span={{ sm: 12 }}>
-              {loading && (
-=======
           <div className={styles.tags}>
             <Stack gap="xl">
               <Stack gap="md" className={styles.header}>
@@ -224,7 +195,6 @@ export default function Tags() {
               </Stack>
 
               {loading ? (
->>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
                 <Text size="sm" c="dimmed">
                   <Trans>Loading tags...</Trans>
                 </Text>

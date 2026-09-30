@@ -231,27 +231,16 @@ export default function UserFile() {
             <Paper className={styles.viewerSurface} radius="xl" withBorder>
               <Suspense
                 fallback={
-<<<<<<< HEAD
-                  <Text size="xs" c="dimmed">
-                    <Trans>Loading viewer...</Trans>
-                  </Text>
-=======
                   <div className={styles.viewerLoading}>
                     <Text size="sm" c="dimmed">
                       Loading viewer…
                     </Text>
                   </div>
->>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
                 }
               >
                 {Viewer ? (
                   <Viewer fileId={file.id} file={file} />
                 ) : (
-<<<<<<< HEAD
-                  <Text>
-                    <Trans>No viewer available for this type of file :/</Trans>
-                  </Text>
-=======
                   <div className={styles.unsupportedViewer}>
                     <FileIcon size={38} weight="duotone" />
                     <Stack gap={4} align="center">
@@ -261,7 +250,6 @@ export default function UserFile() {
                       </Text>
                     </Stack>
                   </div>
->>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
                 )}
               </Suspense>
             </Paper>
@@ -272,22 +260,10 @@ export default function UserFile() {
       <RightSidebar>
         <RightSidebar.Open>
           <Stack gap="lg">
-<<<<<<< HEAD
-            <Paper bg="dark.8">
-              <Text size="sm" fw="bold">
-                {file?.originalFileName}
-              </Text>
-              <Text c="dimmed" size="sm">
-                {file?.mimeType} {file?.sizeBytes} <Trans>bytes</Trans>
-              </Text>
-            </Paper>
-            <Group wrap="nowrap" w="100%">
-=======
             <Text size="xs" c="dimmed" tt="uppercase" fw={700}>
               Actions
             </Text>
             {file?.source ? (
->>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
               <Button
                 onClick={() => navigate(`/source/${file.source?.id.toString()}`)}
                 variant="light"
@@ -295,21 +271,10 @@ export default function UserFile() {
                 leftSection={<FileTextIcon />}
                 fullWidth
               >
-<<<<<<< HEAD
-                <Trans>Download</Trans>
-              </Button>
-              <Button onClick={handleDelete} variant="light" color="gray" size="xs" fullWidth>
-                <Trans>Delete</Trans>
-              </Button>
-            </Group>
-            {!file?.source && canBeSource() && (
-              <Group>
-=======
                 View source
               </Button>
             ) : (
               canBeSource && (
->>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
                 <Button
                   onClick={handleCreateSource}
                   variant="filled"
@@ -317,29 +282,9 @@ export default function UserFile() {
                   fullWidth
                   loading={loadingSource}
                 >
-<<<<<<< HEAD
-                  <Trans>Convert to Source</Trans>
-                </Button>
-              </Group>
-            )}
-            {!!file?.source && (
-              <Group>
-                <Button
-                  onClick={() => navigate(`/source/${file.source?.id.toString()}`)}
-                  variant="light"
-                  color="gray"
-                  size="xs"
-                  leftSection={<FileTextIcon />}
-                  fullWidth
-                >
-                  <Trans>View as Source</Trans>
-                </Button>
-              </Group>
-=======
                   Convert to source
                 </Button>
               )
->>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
             )}
             <Button
               onClick={handleDownload}

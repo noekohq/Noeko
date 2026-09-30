@@ -1,10 +1,4 @@
-import {
-  RecordId,
-  RecordIdRange,
-  StringRecordId,
-  Surreal,
-  Table,
-} from "surrealdb";
+import { RecordId, RecordIdRange, StringRecordId, Surreal, Table } from "surrealdb";
 
 type LegacyResource = string | RecordId | RecordIdRange | StringRecordId | Table;
 

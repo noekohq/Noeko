@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type Surreal from "surrealdb";
+import { AppDatabase } from "../../../app/database/surreal";
 import { migrations } from "../../../app/database/migrations";
 import { checksumMigration, getMigrationStatus } from "../../../app/database/migrations/runner";
 
@@ -15,7 +15,7 @@ describe("migration status", () => {
   it("reports an applied migration whose checksum no longer matches", async () => {
     const db = {
       query: vi.fn(async () => [[migrationRecord("modified-checksum")]]),
-    } as unknown as Surreal;
+    } as unknown as AppDatabase;
 
     const statuses = await getMigrationStatus(db);
     const status = statuses.find(({ id }) => id === migrations[0].id);
@@ -31,7 +31,7 @@ describe("migration status", () => {
     const checksum = checksumMigration(migrations[0]);
     const db = {
       query: vi.fn(async () => [[migrationRecord(checksum)]]),
-    } as unknown as Surreal;
+    } as unknown as AppDatabase;
 
     const statuses = await getMigrationStatus(db);
     const status = statuses.find(({ id }) => id === migrations[0].id);

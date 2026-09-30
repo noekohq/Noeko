@@ -8,10 +8,11 @@ type MigrationStatus = {
   description: string;
   applied: boolean;
   checksum: string;
+  storedChecksum?: string;
   appliedAt?: Date | string;
 };
 
-const checksumMigration = (migration: Migration) => {
+export const checksumMigration = (migration: Migration) => {
   return createHash("sha256")
     .update(migration.id)
     .update(migration.description)
@@ -81,19 +82,24 @@ const removeMigrationRecord = async (db: AppDatabase, migration: Migration) => {
   });
 };
 
-export const getMigrationStatus = async (db: AppDatabase): Promise<MigrationStatus[]> => {
+export const getMigrationStatus = async (
+  db: AppDatabase
+): Promise<(MigrationStatus & { checksumMatches: boolean })[]> => {
   validateMigrationList();
   const applied = await getAppliedMigrationMap(db);
 
   return migrations.map((migration) => {
     const record = applied.get(migration.id);
     const checksum = checksumMigration(migration);
+    const checksumMatches = record?.checksum === checksum;
     return {
       id: migration.id,
       description: migration.description,
       applied: !!record,
       checksum,
+      storedChecksum: record?.checksum,
       appliedAt: record?.appliedAt,
+      checksumMatches,
     };
   });
 };
