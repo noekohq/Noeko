@@ -47,12 +47,17 @@ export const newIdea = async () => {
   }
 };
 
-export const createIdea = async (form: { title?: string; content: string }) => {
+export const createIdea = async (form: {
+  title?: string;
+  content: string;
+  titleSource?: string;
+}) => {
   try {
     const results = await api.post("/ideas", {
       generateTitle: !form.title,
       title: form.title,
       content: form.content,
+      titleSource: form.titleSource,
     });
     return results.data.data as IIdea;
   } catch (error) {

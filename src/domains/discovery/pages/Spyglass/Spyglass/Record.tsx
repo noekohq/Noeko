@@ -1,7 +1,7 @@
 import PageWrapper from "@core/design/layout/PageWrapper";
 import LeftSidebar from "@core/design/components/Layout/Left";
 import RightSidebar from "@core/design/components/Layout/Right";
-import { ActionIcon, Group, Stack, Text } from "@mantine/core";
+import { ActionIcon, Button, Group, Stack, Text } from "@mantine/core";
 import { useSpyglassRecord } from "@domains/discovery/pages/Spyglass/hooks/useSpyglass";
 import { Trans } from "@lingui/react/macro";
 
@@ -9,7 +9,7 @@ import styles from "./Record.module.scss";
 import { DisplayOverview } from "@domains/discovery/components/Spyglass/Overview";
 import Content from "@core/design/components/Layout/Content";
 import { useDocumentTitle } from "@core/hooks/useDocumentTitle";
-import { ArrowLeftIcon, ClockCounterClockwiseIcon } from "@phosphor-icons/react";
+import { ArrowLeftIcon, ClockCounterClockwiseIcon, PlusIcon } from "@phosphor-icons/react";
 import SpyglassActions from "./SpyglassActions";
 import Nav from "@core/design/components/Layout/Nav";
 import { Link, useNavigate, useParams } from "react-router";
@@ -40,7 +40,12 @@ export default function SpyglassRecord() {
           open: (
             <>
               <Link to="/spyglass/history">
-                <ActionIcon color="gray" radius="lg" variant="light">
+                <ActionIcon
+                  aria-label="View Spyglass history"
+                  color="gray"
+                  radius="lg"
+                  variant="light"
+                >
                   <ClockCounterClockwiseIcon />
                 </ActionIcon>
               </Link>
@@ -71,7 +76,7 @@ export default function SpyglassRecord() {
         <LeftSidebar.Collapsed>
           <Stack>
             <Link to="/spyglass/history">
-              <ActionIcon color="gray" variant="light" size="sm">
+              <ActionIcon aria-label="View Spyglass history" color="gray" variant="light" size="sm">
                 <ClockCounterClockwiseIcon />
               </ActionIcon>
             </Link>
@@ -83,6 +88,7 @@ export default function SpyglassRecord() {
           <Group justify="space-between" wrap="nowrap">
             <Group wrap="nowrap">
               <ActionIcon
+                aria-label="Go back"
                 onClick={() => navigate(-1)}
                 color="gray"
                 variant="subtle"
@@ -92,6 +98,16 @@ export default function SpyglassRecord() {
                 <ArrowLeftIcon weight="bold" />
               </ActionIcon>
             </Group>
+            <Button
+              color="gray"
+              component={Link}
+              leftSection={<PlusIcon />}
+              size="compact-sm"
+              to="/spyglass"
+              variant="subtle"
+            >
+              New query
+            </Button>
           </Group>
           <div className={styles.overviewDisplay}>
             {isDeepAnalysis ? (

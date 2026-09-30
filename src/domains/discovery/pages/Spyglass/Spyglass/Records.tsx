@@ -118,6 +118,7 @@ export default function SpyglassHistory() {
             <Group justify="space-between" wrap="nowrap">
               <Group wrap="nowrap">
                 <ActionIcon
+                  aria-label="Go back"
                   onClick={() => navigate(-1)}
                   color="gray"
                   variant="subtle"
@@ -168,12 +169,22 @@ export default function SpyglassHistory() {
                     <Box
                       py="sm"
                       className={styles.historyItem}
-                      onClick={() => navigate(`/spyglass/records/${item.id}`)}
+                      onClick={() =>
+                        navigate(
+                          item.id.toString().startsWith("spyglass_run:")
+                            ? `/spyglass?run=${encodeURIComponent(item.id.toString())}`
+                            : `/spyglass/records/${item.id}`
+                        )
+                      }
                       style={{ cursor: "pointer" }}
                       tabIndex={0}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" || e.key === " ") {
-                          navigate(`/spyglass/records/${item.id}`);
+                          navigate(
+                            item.id.toString().startsWith("spyglass_run:")
+                              ? `/spyglass?run=${encodeURIComponent(item.id.toString())}`
+                              : `/spyglass/records/${item.id}`
+                          );
                         }
                       }}
                     >
@@ -190,6 +201,21 @@ export default function SpyglassHistory() {
                             ) : (
                               <Badge size="xs" variant="light" color="gray">
                                 <Trans>Glimpse</Trans>
+                              </Badge>
+                            )}
+                            {item.status && item.status !== "completed" && (
+                              <Badge
+                                size="xs"
+                                variant="dot"
+                                color={
+                                  item.status === "failed"
+                                    ? "red"
+                                    : item.status === "cancelled"
+                                      ? "gray"
+                                      : "yellow"
+                                }
+                              >
+                                {item.status}
                               </Badge>
                             )}
                           </Group>

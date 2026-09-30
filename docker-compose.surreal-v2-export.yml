@@ -1,0 +1,15 @@
+services:
+  surrealdb:
+    # Migration-only override. Do not run the v3 application against this service.
+    image: surrealdb/surrealdb:v2.6.5
+    entrypoint:
+      - /surreal
+      - start
+      - --user
+      - $DB_USER
+      - --pass
+      - $DB_PASSWORD
+      - file:///data/database.db
+    volumes:
+      - surrealdb_data:/data
+      - ./temp_backups:/transfers

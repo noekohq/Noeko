@@ -54,7 +54,12 @@ export class Import {
     if (!db) {
       throw new Error("Something went wrong getting the database");
     }
-    db.query(userImportsFunction());
+    await db.query(`
+      DEFINE TABLE IF NOT EXISTS import SCHEMALESS;
+      DEFINE TABLE IF NOT EXISTS imported SCHEMALESS;
+      DEFINE TABLE IF NOT EXISTS initiated_import SCHEMALESS;
+    `);
+    await db.query(userImportsFunction());
   }
 
   static down() {}

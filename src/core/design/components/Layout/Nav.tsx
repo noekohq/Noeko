@@ -6,12 +6,13 @@ import {
   HouseIcon,
   PushPinIcon, // New Icon: "Pin it"
   TagIcon,
+  DoorOpenIcon,
 } from "@phosphor-icons/react";
 import { ConstellationIcon, RabbitholeIcon, SpyglassIcon } from "@core/design/icons/Icons";
 import { useLocation, useNavigate } from "react-router";
 import React, { useEffect, useState } from "react";
 import CaptureButton from "@core/design/components/Interactions/CaptureButton";
-import { useLayout } from "@/contexts/LayoutContext";
+import { useLayout, useLayoutScroll } from "@/contexts/LayoutContext";
 import { useInteraction } from "@/contexts/InteractionContext";
 import MyButton from "@core/design/components/Interactions/MyButton";
 import { useAuth } from "@domains/identity/contexts/AuthContext";
@@ -20,6 +21,10 @@ import { CaretUpIcon } from "@phosphor-icons/react/dist/ssr";
 
 type INavProps = {
   children?: React.ReactNode | React.ReactNode[];
+  rabbitholeAction?: {
+    label: string;
+    onClick: () => void;
+  };
 };
 
 const Drawer = ({ children }: INavProps) => {
@@ -27,10 +32,9 @@ const Drawer = ({ children }: INavProps) => {
 };
 Drawer.displayName = "Nav.Drawer";
 
-export default function Nav({ children }: INavProps) {
+export default function Nav({ children, rabbitholeAction }: INavProps) {
   const {
     isMobile,
-    scroll: { isScrolled, scrollDirection, check: checkScrolled },
     elements: {
       nav: {
         drawer: {
@@ -43,8 +47,8 @@ export default function Nav({ children }: INavProps) {
       mobileEditorToolbar,
     },
   } = useLayout();
+  const { isScrolled, scrollDirection, check: checkScrolled } = useLayoutScroll();
   const { isSuperuser } = useAuth();
-
   const {
     state: {
       zen: { get: isZen },
@@ -71,7 +75,10 @@ export default function Nav({ children }: INavProps) {
     };
   }, [drawerContent, isMobile]);
 
-  const { currentRabbithole } = useRabbithole();
+  const { currentRabbithole, exitRabbithole } = useRabbithole();
+  const contextualAction = currentRabbithole
+    ? { label: "Exit Rabbithole", onClick: exitRabbithole }
+    : rabbitholeAction;
 
   const activeMap = {
     search: () => pathname.startsWith("/search"),
@@ -128,7 +135,17 @@ export default function Nav({ children }: INavProps) {
           </div>
         </>
       )}
-      <div className={`${styles.options} ${hasDrawerContent && isMobile ? styles.hasDrawer : ""}`}>
+      {contextualAction && (
+        <button className={styles.rabbitholeAction} onClick={contextualAction.onClick}>
+          <DoorOpenIcon weight="bold" />
+          {contextualAction.label}
+        </button>
+      )}
+      <div
+        className={`${styles.options} ${hasDrawerContent && isMobile ? styles.hasDrawer : ""} ${
+          contextualAction ? styles.hasRabbitholeAction : ""
+        }`}
+      >
         {!isMobile && (
           <button
             className={`${styles.action} ${activeMap.constellation() ? styles.active : ""}`}

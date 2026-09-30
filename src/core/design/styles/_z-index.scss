@@ -32,8 +32,10 @@
   --z-index-modal: 2000;
 
   // Context Menus and Drawers
-  --z-index-context-menu: 1010;
-  --z-index-menu: 1010;
+  // Portaled dropdowns must sit above modal content so controls such as
+  // Select and Combobox remain usable when rendered inside a modal.
+  --z-index-context-menu: 2010;
+  --z-index-menu: 2010;
   --z-index-drawer: 1000;
   --z-index-global-override: 1001;
 

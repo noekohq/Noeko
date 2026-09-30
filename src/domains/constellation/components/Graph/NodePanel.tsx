@@ -10,6 +10,7 @@ import {
   Stack,
   Text,
   Title,
+  Loader,
 } from "@mantine/core";
 import { INode } from "@/declarations/graph";
 import styles from "./NodePanel.module.scss";
@@ -18,9 +19,10 @@ import {
   ArrowsOutSimpleIcon,
   GraphIcon,
   SelectionIcon,
+  SparkleIcon,
   XIcon,
 } from "@phosphor-icons/react";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 import {
   getNodeContent,
   getNodeDescription,
@@ -31,6 +33,7 @@ import {
 import Content from "@core/design/components/Layout/Content";
 import { useGraph } from "@domains/constellation/contexts/GraphContext";
 import { createPortal } from "react-dom";
+import useFetch from "@core/hooks/useFetch";
 
 export type NodePanelProps = {
   node: INode;
@@ -38,27 +41,41 @@ export type NodePanelProps = {
   onClose: () => void;
   onClusterSelect: (node: INode) => void;
   onClusterDeselect: (node: INode) => void;
+  onExploreSemantic?: (node: INode) => void;
 };
 
 const NodePanel = forwardRef<HTMLDivElement, NodePanelProps>(
-  ({ node, position, onClose, onClusterDeselect, onClusterSelect }, ref) => {
-    const navigate = useNavigate();
-
+  ({ node, position, onClose, onClusterDeselect, onClusterSelect, onExploreSemantic }, ref) => {
     const [expanded, setExpanded] = useState(false);
 
-    const title = getNodeTitle(node);
-    const description = getNodeDescription(node);
-    const content = getNodeContent(node);
+    const {
+      data: nodeDetails,
+      load: loadNodeDetails,
+      loading: loadingNodeDetails,
+    } = useFetch<never, INode>({
+      url: `/graph/node/${encodeURIComponent(node.id.toString())}`,
+      cancelPrevious: true,
+    });
 
-    const Icon = NodeIcon(node);
+    useEffect(() => {
+      if (expanded && "summary" in node && !nodeDetails) {
+        loadNodeDetails();
+      }
+    }, [expanded, node, nodeDetails, loadNodeDetails]);
+
+    const displayNode = nodeDetails || node;
+
+    const title = getNodeTitle(displayNode);
+    const description = getNodeDescription(displayNode);
+    const content = getNodeContent(displayNode);
+
+    const Icon = NodeIcon(displayNode);
 
     const {
       selected: { get: selected, add: addSelected, remove: removeSelected },
     } = useGraph();
 
     const isSelected = selected.has(node.id.toString());
-
-    const link = getNodeLink(node);
 
     return createPortal(
       <div
@@ -156,6 +173,23 @@ const NodePanel = forwardRef<HTMLDivElement, NodePanelProps>(
               >
                 <GraphIcon weight="bold" />
               </ActionIcon>
+              {onExploreSemantic && ["idea", "source", "task", "excerpt"].includes(node.type) && (
+                <ActionIcon
+                  color="violet"
+                  variant="light"
+                  radius="lg"
+                  size="md"
+                  title="Explore related nodes"
+                  aria-label="Explore related nodes"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onExploreSemantic(node);
+                    onClose();
+                  }}
+                >
+                  <SparkleIcon weight="bold" />
+                </ActionIcon>
+              )}
             </Group>
           </Grid.Col>
         </Grid>
@@ -173,6 +207,7 @@ const NodePanel = forwardRef<HTMLDivElement, NodePanelProps>(
                 <Card radius="lg" shadow="lg" withBorder>
                   <Text size="sm">{description}</Text>
                 </Card>
+                {loadingNodeDetails && <Loader size="sm" color="gray" />}
                 {content && (
                   <Box
                     onClick={(e) => {

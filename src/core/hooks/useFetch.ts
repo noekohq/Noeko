@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { DefaultResponse } from "@/declarations/server";
 import { api } from "@infrastructure/api/client";
 
@@ -23,6 +23,7 @@ export interface UseFetchConfig<B, D> {
   dependencies?: unknown[];
   runOnDependencies?: unknown[];
   skip403Redirect?: boolean;
+  cancelPrevious?: boolean;
 }
 
 function useFetch<B, D>({
@@ -40,6 +41,7 @@ function useFetch<B, D>({
   dependencies = [],
   runOnDependencies = [],
   skip403Redirect,
+  cancelPrevious = false,
 }: UseFetchConfig<B, D>) {
   const queryStr = query
     ? Object.keys(query)
@@ -53,8 +55,19 @@ function useFetch<B, D>({
   const [data, setData] = useState<D>();
   const [success, setSuccess] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const requestIdRef = useRef(0);
 
-  const useBody = () => {
+  useEffect(() => {
+    return () => {
+      if (cancelPrevious) {
+        abortControllerRef.current?.abort();
+        abortControllerRef.current = null;
+      }
+    };
+  }, [cancelPrevious]);
+
+  const getBody = () => {
     if (body instanceof FormData) {
       return body;
     }
@@ -70,22 +83,40 @@ function useFetch<B, D>({
         return;
       }
       refreshHeaders();
-      onBefore && onBefore();
+      onBefore?.();
+      if (cancelPrevious) {
+        abortControllerRef.current?.abort();
+      }
+      const requestId = ++requestIdRef.current;
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
       setLoading(true);
       return api<DefaultResponse<D>>(loadConfig?.updatedUrl || urlToUse, {
         method,
-        data: useBody(),
+        data: loadConfig?.updatedBody ?? getBody(),
         headers,
         skipGlobal403Redirect: skip403Redirect,
+        signal: abortController.signal,
       })
         .then((res) => {
-          onSuccess && onSuccess(res.data.data as D, res.data.message as string);
+          if (cancelPrevious && requestId !== requestIdRef.current) {
+            return res.data;
+          }
+          onSuccess?.(res.data.data as D, res.data.message as string);
           setData(res.data.data);
           setSuccess(true);
           return res.data;
         })
         .catch((err) => {
-          onError && onError(err);
+          if (abortController.signal.aborted) {
+            return {
+              error: err,
+              success: false,
+              data: null,
+              message: "Request cancelled",
+            } as DefaultResponse<null>;
+          }
+          onError?.(err);
           setData(undefined);
           setSuccess(false);
           const message = err?.response?.data?.message || err?.message || null;
@@ -98,11 +129,15 @@ function useFetch<B, D>({
           } as DefaultResponse<null>;
         })
         .finally(() => {
+          if (cancelPrevious && requestId !== requestIdRef.current) {
+            return;
+          }
+          abortControllerRef.current = null;
           setLoading(false);
-          onFinally && onFinally();
+          onFinally?.();
         });
     },
-    [urlToUse, method, body, headers, bustCache, ...dependencies]
+    [urlToUse, method, body, headers, bustCache, cancelPrevious, ...dependencies]
   );
 
   const refreshHeaders = () => {
@@ -135,13 +170,13 @@ function useFetch<B, D>({
         skipGlobal403Redirect: skip403Redirect,
       })
         .then((res) => {
-          onSuccess && onSuccess(res.data.data as D, res.data.message);
+          onSuccess?.(res.data.data as D, res.data.message);
           setData(res.data.data);
           setSuccess(true);
           return res.data;
         })
         .catch((err) => {
-          onError && onError(err);
+          onError?.(err);
           setData(undefined);
           setSuccess(false);
           return {

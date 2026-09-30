@@ -1,9 +1,7 @@
 import React from "react";
 import styles from "./AntLoader.module.scss";
 import { Text } from "@mantine/core";
-import { isDarkScheme } from "@core/utils/dom";
 import { useSettings } from "@/contexts/SettingsContext";
-// import { isDarkScheme } from '@core/utils/dom'; // Not used currently
 
 type Direction = 0 | 1 | 2 | 3;
 type RgbColor = [number, number, number];
@@ -13,6 +11,28 @@ const colorsAreEqual = (colorA: RgbColor, colorB: RgbColor): boolean => {
 };
 
 const rgbToString = (rgb: RgbColor): string => `rgb(${rgb.join(",")})`;
+
+const parseThemeColor = (value: string | undefined, fallback: RgbColor): RgbColor => {
+  const color = value?.trim();
+  if (!color) return fallback;
+
+  const shortHex = color.match(/^#([\da-f])([\da-f])([\da-f])$/i);
+  if (shortHex) {
+    return shortHex.slice(1).map((component) => parseInt(component + component, 16)) as RgbColor;
+  }
+
+  const hex = color.match(/^#([\da-f]{2})([\da-f]{2})([\da-f]{2})(?:[\da-f]{2})?$/i);
+  if (hex) return hex.slice(1, 4).map((component) => parseInt(component, 16)) as RgbColor;
+
+  const rgb = color.match(
+    /^rgba?\(\s*(\d+(?:\.\d+)?)\s*[, ]\s*(\d+(?:\.\d+)?)\s*[, ]\s*(\d+(?:\.\d+)?)/i
+  );
+  if (rgb) {
+    return rgb.slice(1, 4).map((component) => Math.min(255, Number(component))) as RgbColor;
+  }
+
+  return fallback;
+};
 
 interface CellData {
   targetColorRgb: RgbColor;
@@ -67,13 +87,22 @@ const LangtonsAntLoader: React.FC<LangtonsAntLoaderProps> = ({
   const {
     ui: {
       theme: {
-        scheme: { get: scheme },
+        resolved: { get: resolvedTheme },
       },
     },
   } = useSettings();
-  const isDark = scheme === "dark" || (scheme === "auto" && isDarkScheme());
-  const SOFT_WHITE_BG: RgbColor = isDark ? [102, 92, 84] : [251, 241, 199];
-  const SOFT_BLACK_FG: RgbColor = isDark ? [29, 32, 33] : [168, 153, 132];
+  const [backgroundColor, foregroundColor] = React.useMemo(() => {
+    const variables = resolvedTheme.applicator.variables;
+    return [
+      parseThemeColor(variables["--mantine-color-default"], [29, 32, 33]),
+      parseThemeColor(
+        variables["--theme-accent"] ??
+          variables["--color-highlight"] ??
+          variables["--mantine-color-text"],
+        [152, 151, 26]
+      ),
+    ] as const;
+  }, [resolvedTheme]);
 
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -110,82 +139,88 @@ const LangtonsAntLoader: React.FC<LangtonsAntLoaderProps> = ({
     return rgbToString([r, g, b]);
   };
 
-  const getCellData = (x: number, y: number): CellData => {
-    return (
+  const getCellData = React.useCallback(
+    (x: number, y: number): CellData =>
       grid.current.get(`${x},${y}`) ?? {
-        targetColorRgb: SOFT_WHITE_BG,
-        fromColorRgb: SOFT_WHITE_BG,
+        targetColorRgb: backgroundColor,
+        fromColorRgb: backgroundColor,
         transitionStart: -1,
         lastVisitedTimestamp: 0,
         isAging: false,
+      },
+    [backgroundColor]
+  );
+
+  const getCurrentVisualColor = React.useCallback(
+    (data: CellData, timestamp: number): RgbColor => {
+      if (data.transitionStart === -1 || colorsAreEqual(data.fromColorRgb, data.targetColorRgb)) {
+        return data.targetColorRgb;
       }
-    );
-  };
+      const currentFadeDuration = data.isAging ? cellAgeFadeDuration : fadeDuration;
+      const elapsed = timestamp - data.transitionStart;
+      const progress = Math.min(1, elapsed / currentFadeDuration);
+      const r = Math.round(
+        data.fromColorRgb[0] + (data.targetColorRgb[0] - data.fromColorRgb[0]) * progress
+      );
+      const g = Math.round(
+        data.fromColorRgb[1] + (data.targetColorRgb[1] - data.fromColorRgb[1]) * progress
+      );
+      const b = Math.round(
+        data.fromColorRgb[2] + (data.targetColorRgb[2] - data.fromColorRgb[2]) * progress
+      );
+      return [r, g, b];
+    },
+    [cellAgeFadeDuration, fadeDuration]
+  );
 
-  const getCurrentVisualColor = (data: CellData, timestamp: number): RgbColor => {
-    if (data.transitionStart === -1 || colorsAreEqual(data.fromColorRgb, data.targetColorRgb)) {
-      return data.targetColorRgb;
-    }
-    const currentFadeDuration = data.isAging ? cellAgeFadeDuration : fadeDuration;
-    const elapsed = timestamp - data.transitionStart;
-    const progress = Math.min(1, elapsed / currentFadeDuration);
-    const r = Math.round(
-      data.fromColorRgb[0] + (data.targetColorRgb[0] - data.fromColorRgb[0]) * progress
-    );
-    const g = Math.round(
-      data.fromColorRgb[1] + (data.targetColorRgb[1] - data.fromColorRgb[1]) * progress
-    );
-    const b = Math.round(
-      data.fromColorRgb[2] + (data.targetColorRgb[2] - data.fromColorRgb[2]) * progress
-    );
-    return [r, g, b];
-  };
+  const setCellState = React.useCallback(
+    (
+      x: number,
+      y: number,
+      newTargetColor: RgbColor,
+      currentVisualColor: RgbColor,
+      timestamp: number,
+      isAgingTransition: boolean = false
+    ): void => {
+      const key = `${x},${y}`;
+      const existingData = grid.current.get(key);
+      if (
+        existingData &&
+        existingData.transitionStart !== -1 &&
+        !existingData.isAging &&
+        isAgingTransition
+      )
+        return;
 
-  const setCellState = (
-    x: number,
-    y: number,
-    newTargetColor: RgbColor,
-    currentVisualColor: RgbColor,
-    timestamp: number,
-    isAgingTransition: boolean = false
-  ): void => {
-    const key = `${x},${y}`;
-    const existingData = grid.current.get(key);
-    if (
-      existingData &&
-      existingData.transitionStart !== -1 &&
-      !existingData.isAging &&
-      isAgingTransition
-    )
-      return;
-
-    if (
-      !existingData ||
-      !colorsAreEqual(existingData.targetColorRgb, newTargetColor) ||
-      existingData.transitionStart === -1
-    ) {
-      grid.current.set(key, {
-        targetColorRgb: newTargetColor,
-        fromColorRgb: currentVisualColor,
-        transitionStart: timestamp,
-        lastVisitedTimestamp: isAgingTransition
-          ? existingData?.lastVisitedTimestamp || 0
-          : timestamp,
-        isAging: isAgingTransition,
-      });
-    } else if (!isAgingTransition && existingData) {
-      existingData.lastVisitedTimestamp = timestamp;
-      if (existingData.isAging) {
+      if (
+        !existingData ||
+        !colorsAreEqual(existingData.targetColorRgb, newTargetColor) ||
+        existingData.transitionStart === -1
+      ) {
         grid.current.set(key, {
           targetColorRgb: newTargetColor,
           fromColorRgb: currentVisualColor,
           transitionStart: timestamp,
-          lastVisitedTimestamp: timestamp,
-          isAging: false,
+          lastVisitedTimestamp: isAgingTransition
+            ? existingData?.lastVisitedTimestamp || 0
+            : timestamp,
+          isAging: isAgingTransition,
         });
+      } else if (!isAgingTransition && existingData) {
+        existingData.lastVisitedTimestamp = timestamp;
+        if (existingData.isAging) {
+          grid.current.set(key, {
+            targetColorRgb: newTargetColor,
+            fromColorRgb: currentVisualColor,
+            transitionStart: timestamp,
+            lastVisitedTimestamp: timestamp,
+            isAging: false,
+          });
+        }
       }
-    }
-  };
+    },
+    []
+  );
 
   const draw = React.useCallback(
     (timestamp: number) => {
@@ -262,7 +297,7 @@ const LangtonsAntLoader: React.FC<LangtonsAntLoaderProps> = ({
         totalSteps.current++;
         const { x, y } = ant;
         const currentCellData = getCellData(x, y);
-        const isBackground = colorsAreEqual(currentCellData.targetColorRgb, SOFT_WHITE_BG);
+        const isBackground = colorsAreEqual(currentCellData.targetColorRgb, backgroundColor);
         const currentVisualColor = getCurrentVisualColor(currentCellData, timestamp);
         let nextTargetColor: RgbColor;
         let intendedDir = ant.dir;
@@ -272,14 +307,14 @@ const LangtonsAntLoader: React.FC<LangtonsAntLoaderProps> = ({
           if (randomChoice < 0.4) intendedDir = ((ant.dir + 3) % 4) as Direction;
           else if (randomChoice < 0.8) intendedDir = ((ant.dir + 1) % 4) as Direction;
           else intendedDir = ((ant.dir + 2) % 4) as Direction;
-          nextTargetColor = isBackground ? SOFT_BLACK_FG : SOFT_WHITE_BG;
+          nextTargetColor = isBackground ? foregroundColor : backgroundColor;
         } else {
           if (isBackground) {
             intendedDir = ((ant.dir + 1) % 4) as Direction;
-            nextTargetColor = SOFT_BLACK_FG;
+            nextTargetColor = foregroundColor;
           } else {
             intendedDir = ((ant.dir + 3) % 4) as Direction;
-            nextTargetColor = SOFT_WHITE_BG;
+            nextTargetColor = backgroundColor;
           }
         }
 
@@ -332,13 +367,15 @@ const LangtonsAntLoader: React.FC<LangtonsAntLoaderProps> = ({
       }
     },
     [
-      fadeDuration,
       randomTurnProbability,
-      cellAgeFadeDuration,
       gravityStrength,
       modeSwitchInterval,
       onStepUpdate,
-      cellSize,
+      backgroundColor,
+      foregroundColor,
+      getCellData,
+      getCurrentVisualColor,
+      setCellState,
     ]
   );
 
@@ -347,14 +384,14 @@ const LangtonsAntLoader: React.FC<LangtonsAntLoaderProps> = ({
       grid.current.forEach((data, key) => {
         if (
           data.transitionStart === -1 &&
-          !colorsAreEqual(data.targetColorRgb, SOFT_WHITE_BG) &&
+          !colorsAreEqual(data.targetColorRgb, backgroundColor) &&
           timestamp - data.lastVisitedTimestamp > cellAgeThreshold
         ) {
           const [xStr, yStr] = key.split(",");
           setCellState(
             parseInt(xStr, 10),
             parseInt(yStr, 10),
-            SOFT_WHITE_BG,
+            backgroundColor,
             data.targetColorRgb,
             timestamp,
             true
@@ -362,7 +399,7 @@ const LangtonsAntLoader: React.FC<LangtonsAntLoaderProps> = ({
         }
       });
     },
-    [cellAgeThreshold, cellAgeFadeDuration]
+    [backgroundColor, cellAgeThreshold, setCellState]
   );
 
   const runSimulation = React.useCallback(

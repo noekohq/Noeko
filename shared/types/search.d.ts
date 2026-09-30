@@ -19,6 +19,9 @@ export type ISearchResult = {
     ftsContentScore?: number;
     ftsTitleScore?: number;
     exactTitleBonus?: number;
+    ftsRank?: number;
+    semanticRank?: number;
+    queryRanks?: number[];
     source?: "semantic" | "fts" | "hybrid";
   };
 };
@@ -115,7 +118,8 @@ export type IConnectableSearchQueryTagFilter = {
 };
 
 export type IConnectableSearchQueryVectorSettings = {
-  effort: number | "low" | "mid" | "high";
+  effort?: number | "low" | "mid" | "high";
+  threshold?: number;
 };
 
 export type IConnectableSearchQuery = { query: string } & Partial<{

@@ -327,7 +327,12 @@ export default function Source() {
                     }
                   >
                     {Viewer ? (
-                      <Viewer fileId={file.id.toString()} withinSource />
+                      <Viewer
+                        fileId={file.id.toString()}
+                        file={file}
+                        source={source}
+                        withinSource
+                      />
                     ) : (
                       <Text>
                         <Trans>No viewer available for this type of file :/</Trans>

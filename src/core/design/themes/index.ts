@@ -1,12 +1,10 @@
-import { createTheme, MantineThemeOverride } from "@mantine/core";
-import { IThemeSpec, IThemeOption, IThemeResolved, ICSSApplicator } from "@/declarations/themes";
+import { IThemeSpec, IThemeResolved, ICSSApplicator } from "@/declarations/themes";
 import { overrides } from "./themes";
 import { applyStyleBlocks, setCssVariable } from "@core/utils/dom";
 
 export function ResolveTheme(spec: IThemeSpec): IThemeResolved {
   if (!((spec.override as string) in overrides)) {
     const fallback = overrides["noeko"]?.(spec);
-    applyCSS(fallback.applicator);
     return {
       override: fallback.override,
       scheme: spec.scheme,
@@ -16,8 +14,6 @@ export function ResolveTheme(spec: IThemeSpec): IThemeResolved {
   const o = overrides[spec.override](spec);
   const override = o.override;
   const applicator = o.applicator;
-
-  applyCSS(applicator);
 
   return {
     override: override,

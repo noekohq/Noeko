@@ -5,11 +5,14 @@ import { useGraph } from "@domains/constellation/contexts/GraphContext";
 import { Text } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { getNodeTitle, NodeIcon } from "@infrastructure/graph/utils";
+import type { SemanticNodeHighlight } from "../../semantic";
 
 type NodeProps = {
   node: INode;
   isDragging: boolean;
   scaleFactor: number;
+  semanticHighlight?: SemanticNodeHighlight;
+  connectedToSelection?: boolean;
   onNodeNavigate?: (
     event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
     node: INode
@@ -42,6 +45,8 @@ const NodeComponent = ({
   onClusterSelect,
   onClusterDeselect,
   scaleFactor,
+  semanticHighlight,
+  connectedToSelection = false,
   "data-node-id": dataNodeId,
 }: NodeProps) => {
   // Refs
@@ -70,12 +75,14 @@ const NodeComponent = ({
   const iAmSelected = selected.has(node.id.toString());
   const iAmUnselected = !iAmSelected && selected.size > 0;
   const iAmHighlighted = highlighted.has(node.id.toString());
+  const iAmSemanticResult = semanticHighlight?.role === "neighbor";
   const iAmUnHighlighted = !iAmHighlighted && highlighted.size > 0;
   const iAmLoading = isLoading();
   const { filter } = getFilter();
   const isZoomedIn = scaleFactor > 0.45;
   const shouldShow = filter(node.id.toString());
-  const showText = isZoomedIn && (iAmHighlighted || !iAmUnselected);
+  const showText =
+    isZoomedIn && (iAmHighlighted || iAmSemanticResult || connectedToSelection || !iAmUnselected);
 
   // Effects
   useLayoutEffect(() => {
@@ -102,13 +109,16 @@ const NodeComponent = ({
     };
   }, []);
 
-  const handleToggleSelectNode = (node: INode) => {
+  const handleToggleSelectNode = (
+    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
+    node: INode
+  ) => {
     const nodeId = node.id.toString();
     if (selected.has(nodeId)) {
       removeFromSelection(nodeId);
     } else {
       addToSelection(nodeId);
-      onNodeSelect;
+      onNodeSelect?.(event, node);
     }
   };
 
@@ -123,7 +133,7 @@ const NodeComponent = ({
   const handleNodeClick = (
     event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>
   ) => {
-    handleToggleSelectNode(node);
+    handleToggleSelectNode(event, node);
     if (event.shiftKey) {
       onNodeNavigate?.(event, node);
     }
@@ -168,13 +178,14 @@ const NodeComponent = ({
     styles[node.type],
     iAmFocused && styles.focused,
     iAmSelected && styles.selected,
-    iAmUnselected && styles.unselected,
+    iAmUnselected && !iAmSemanticResult && styles.unselected,
     !shouldShow && styles.hidden,
     iAmLoading && styles.loading,
     isDragging && styles.dragging,
     isZoomedIn ? styles.zoomedIn : styles.zoomedOut,
     iAmHighlighted && styles.highlighted,
-    iAmUnHighlighted && styles.unhighlighted,
+    iAmUnHighlighted && !iAmSemanticResult && styles.unhighlighted,
+    iAmSemanticResult && styles.semanticResult,
   ]
     .filter(Boolean)
     .join(" ");

@@ -12,6 +12,8 @@ export type IThing = {
   draggable?: boolean;
   createdAt?: string;
   updatedAt?: string;
+  state?: "default" | "suggested";
+  className?: string;
 
   action?: {
     icon: React.FC<IconProps>;
@@ -19,11 +21,20 @@ export type IThing = {
     onClick: (id: string, e: React.MouseEvent) => void;
   };
 
+  contextActions?: {
+    id: string;
+    label: string;
+    icon?: React.FC<IconProps>;
+    onClick: () => void;
+    disabled?: boolean;
+  }[];
+
   artifacts?: {
     icon: React.FC<IconProps>;
     label: string;
   }[];
 
   preview?: React.ReactNode;
+  displayPreview?: boolean;
   thumbnail?: string;
 };

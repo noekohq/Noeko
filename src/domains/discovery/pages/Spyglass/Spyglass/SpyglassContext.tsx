@@ -1,12 +1,13 @@
+<<<<<<< HEAD
 import { ActionIcon, Group, Stack, Text } from "@mantine/core";
 import { Trans, Plural } from "@lingui/react/macro";
 import { ISpyglassSearch } from "../../../../../../app/database/models/search";
+=======
+import { ActionIcon, Stack, Text } from "@mantine/core";
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 import { ICitationMap } from "@domains/discovery/hooks/useSpyglassService";
-import { useSpyglassRecord } from "../hooks/useSpyglass";
-import styles from "./SpyglassContext.module.scss";
 import CollapseButton from "@core/design/components/Interactions/CollapseButton";
 import ConnectableThing from "@core/design/components/Display/Interactions/Connections/ConnectableThing";
-import { ISearchResult } from "../../../../../../shared/types/search";
 import { IConnectable } from "../../../../../../app/services/Graph";
 
 interface ISpyglassContextProps {
@@ -30,11 +31,16 @@ export default function SpyglassContext({ results, citationMap }: ISpyglassConte
       {citations && citations.length > 0 && (
         <>
           <Text fw="bold" size="sm" c="dimmed">
+<<<<<<< HEAD
             <Plural
               value={citations.length}
               one="FINDINGS IN # RESOURCE"
               other="FINDINGS IN # RESOURCES"
             />
+=======
+            FINDINGS IN {citations.length} RESOURCE
+            {citations.length === 1 ? "" : "S"}
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
           </Text>
           {citations.map((c) => {
             if (!c) {
@@ -45,6 +51,7 @@ export default function SpyglassContext({ results, citationMap }: ISpyglassConte
 
             return (
               <CollapseButton
+                key={c.id.toString()}
                 target={<ConnectableThing thing={c} />}
                 details={
                   <>

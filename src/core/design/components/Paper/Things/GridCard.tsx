@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import { ArrowUpRightIcon, DotsSixVerticalIcon } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
-import { CopyButton, Modal, Stack, Text, Box } from "@mantine/core";
+import { CopyButton, Modal, Stack, Text } from "@mantine/core";
 import { CopyIcon, EyeIcon, ArrowRightIcon, BrowsersIcon, CheckIcon } from "@phosphor-icons/react";
 import styles from "./GridCard.module.scss";
 import { PaperContextMenu } from "../PaperContextMenu";
@@ -149,18 +149,46 @@ export default function GridCard({
                 )}
               </div>
 
-              <div className={styles.ctaIcon}>
-                <ArrowUpRightIcon size={16} weight="bold" />
+              <div className={styles.cardActions}>
+                {action && (
+                  <button
+                    type="button"
+                    className={`${styles.iconButton} ${styles.actionButton}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      action.onClick(id, e);
+                    }}
+                    title={action.tooltip}
+                    aria-label={action.tooltip}
+                  >
+                    <action.icon weight="bold" size={16} />
+                  </button>
+                )}
+
+                {state !== "suggested" && (link || onClick) && (
+                  <button
+                    type="button"
+                    className={`${styles.iconButton} ${styles.openButton}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleMainClick(e);
+                    }}
+                    title="Open"
+                    aria-label={`Open ${title?.trim() || "item"}`}
+                  >
+                    <ArrowUpRightIcon size={16} weight="bold" />
+                  </button>
+                )}
               </div>
             </div>
 
-            <Text lineClamp={1} fw="bold" size="md" title={title} w={"100%"}>
+            <Text lineClamp={2} fw="bold" size="md" title={title} w={"100%"}>
               {title?.trim() || "Untitled"}
             </Text>
 
             {(!preview || !displayPreview) && detail && (
               <div>
-                <Text size="sm" c="dimmed">
+                <Text size="sm" c="dimmed" lineClamp={3} className={styles.detail}>
                   {detail}
                 </Text>
               </div>
@@ -184,21 +212,6 @@ export default function GridCard({
 
             {footerContent && <div className={styles.footerContent}>{footerContent}</div>}
 
-            {action && (
-              <div className={styles.footer}>
-                <Box style={{ flex: 1 }} />
-                <button
-                  className={styles.actionButton}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    action.onClick(id, e);
-                  }}
-                  title={action.tooltip}
-                >
-                  <action.icon weight="bold" size={14} />
-                </button>
-              </div>
-            )}
           </div>
         </PaperContextMenu.Target>
 

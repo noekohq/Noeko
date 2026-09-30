@@ -57,6 +57,7 @@ import { IRabbithole } from "../../../../../app/database/models/rabbithole";
 import { useLandscape } from "@/contexts/LandscapeContext";
 import { ISearchResultValue } from "../../../../../shared/types/search";
 import { showNotification } from "@mantine/notifications";
+import { themeOptions } from "@core/design/themes/themes";
 
 const minisearch = new MiniSearch<IUnifiedSearchItem>({
   fields: ["title", "keywords"],
@@ -635,7 +636,7 @@ const useSpotlightConfig = ({ onClose }: IUseSpotlightConfig): IUseSpotlightRetu
         title: "Theme",
         icon: <PaletteIcon />,
         subviewId: "themeSelectorSubview",
-        keywords: "appearance noeko nord pink lady",
+        keywords: `appearance ${themeOptions.map(({ keywords }) => keywords).join(" ")}`,
       },
       {
         id: "colorSchemeCmd",
@@ -705,41 +706,23 @@ const useSpotlightConfig = ({ onClose }: IUseSpotlightConfig): IUseSpotlightRetu
 
   const subviewDefinitions = useMemo<Map<string, ISubviewDefinition>>(
     () =>
-      new Map([
+      new Map<string, ISubviewDefinition>([
         [
           "themeSelectorSubview",
           {
             id: "themeSelectorSubview",
             title: "Theme",
-            items: [
-              {
-                id: "default",
-                title: "Default",
-                icon: <PaletteIcon />,
-                action: (close) => {
-                  setOverride("noeko");
-                  close();
-                },
+            items: themeOptions.map(({ value, label, description, keywords }) => ({
+              id: value,
+              title: label,
+              description,
+              keywords,
+              icon: <PaletteIcon />,
+              action: (close: () => void) => {
+                setOverride(value);
+                close();
               },
-              {
-                id: "nord",
-                title: "Nord",
-                icon: <PaletteIcon />,
-                action: (close) => {
-                  setOverride("nord");
-                  close();
-                },
-              },
-              {
-                id: "pinkLady",
-                title: "Pink Lady",
-                icon: <PaletteIcon />,
-                action: (close) => {
-                  setOverride("pinkLady");
-                  close();
-                },
-              },
-            ],
+            })),
           },
         ],
         [

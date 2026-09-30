@@ -20,9 +20,10 @@ import { useInteraction } from "@/contexts/InteractionContext";
 import { userIsSuperuser } from "@domains/identity/utils/user";
 import styles from "./MyButton.module.scss";
 import { useDisclosure } from "@mantine/hooks";
+import { createPortal } from "react-dom";
 
 export default function MyButton() {
-  const [opened, { toggle }] = useDisclosure();
+  const [opened, { close, toggle }] = useDisclosure();
   const { user, logout } = useAuth();
   const isSuperuser = user ? (userIsSuperuser(user) ?? false) : false;
   const navigate = useNavigate();
@@ -33,7 +34,7 @@ export default function MyButton() {
 
   const handleClose = () => {
     setTimeout(() => {
-      toggle();
+      close();
     }, 100);
   };
 
@@ -57,54 +58,76 @@ export default function MyButton() {
 
   return (
     <>
-      {opened && (
-        <div className={styles.overlay} onClick={toggle}>
-          <div className={styles.menu} onClick={(e) => e.stopPropagation()}>
-            <div className={`${styles.section} ${styles.grid}`}>
-              <div className={styles.sectionHeader}>Views</div>
-              {menuNavItems.map((item) => (
-                <button
-                  key={item.path}
-                  className={styles.option}
-                  onClick={() => {
-                    navigate(item.path);
-                    handleClose();
-                  }}
-                >
-                  <item.icon weight="bold" size={16} />
-                  <span>{item.label}</span>
-                </button>
-              ))}
+      {opened &&
+        createPortal(
+          <>
+            <div className={styles.overlay} onClick={close}>
+              <div className={styles.menu} onClick={(e) => e.stopPropagation()}>
+                <div className={`${styles.section} ${styles.grid}`}>
+                  <div className={styles.sectionHeader}>Views</div>
+                  {menuNavItems.map((item) => (
+                    <button
+                      key={item.path}
+                      className={styles.option}
+                      onClick={() => {
+                        navigate(item.path);
+                        handleClose();
+                      }}
+                    >
+                      <item.icon weight="bold" size={16} />
+                      <span>{item.label}</span>
+                    </button>
+                  ))}
+                </div>
+                <div className={styles.section}>
+                  <div className={styles.sectionHeader}>User</div>
+                  {userMenuItems.map((item) => (
+                    <button
+                      key={item.path}
+                      className={styles.option}
+                      onClick={() => {
+                        navigate(item.path);
+                        handleClose();
+                      }}
+                    >
+                      <item.icon weight="bold" size={16} />
+                      <span>{item.label}</span>
+                    </button>
+                  ))}
+                </div>
+                <div className={styles.section}>
+                  <button
+                    className={`${styles.option} ${styles.logout}`}
+                    onClick={() => logout && logout()}
+                  >
+                    <ArrowLineLeftIcon weight="bold" size={16} />
+                    <span>Logout</span>
+                  </button>
+                </div>
+              </div>
             </div>
-            <div className={styles.section}>
-              <div className={styles.sectionHeader}>User</div>
-              {userMenuItems.map((item) => (
-                <button
-                  key={item.path}
-                  className={styles.option}
-                  onClick={() => {
-                    navigate(item.path);
-                    handleClose();
-                  }}
-                >
-                  <item.icon weight="bold" size={16} />
-                  <span>{item.label}</span>
-                </button>
-              ))}
-            </div>
-            <div className={styles.section}>
-              <button
-                className={`${styles.option} ${styles.logout}`}
-                onClick={() => logout && logout()}
-              >
-                <ArrowLineLeftIcon weight="bold" size={16} />
-                <span>Logout</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      <button className={`${styles.myButton} ${opened ? styles.opened : ""}`} onClick={toggle}>
+            <button
+              type="button"
+              aria-label="Close profile menu"
+              className={`${styles.myButton} ${styles.opened} ${styles.portaledClose}`}
+              onClick={close}
+            >
+              <div className={styles.iconContainer}>
+                <UserIcon weight="bold" size={20} className={`${styles.icon} ${styles.userIcon}`} />
+                <XIcon weight="regular" size={20} className={`${styles.icon} ${styles.xIcon}`} />
+              </div>
+            </button>
+          </>,
+          document.body
+        )}
+      <button
+        type="button"
+        aria-label="Open profile menu"
+        aria-hidden={opened}
+        tabIndex={opened ? -1 : undefined}
+        className={`${styles.myButton} ${opened ? styles.opened : ""}`}
+        onClick={toggle}
+      >
         <div className={styles.iconContainer}>
           <UserIcon weight="bold" size={20} className={`${styles.icon} ${styles.userIcon}`} />
           <XIcon weight="regular" size={20} className={`${styles.icon} ${styles.xIcon}`} />

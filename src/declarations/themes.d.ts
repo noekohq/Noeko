@@ -1,6 +1,14 @@
 import { MantineColorScheme, MantineThemeOverride } from "@mantine/core";
 
-export type IThemeOption = "noeko" | "nord" | "pinkLady" | "dracula";
+export type IThemeOption =
+  | "noeko"
+  | "basalt"
+  | "nord"
+  | "pinkLady"
+  | "vaporwave"
+  | "river"
+  | "dracula"
+  | "paper";
 
 export type IThemeSpec = {
   scheme: MantineColorScheme;

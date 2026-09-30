@@ -8,7 +8,7 @@ import ContextMenuWrapper from "./ContextMenuWrapper";
 import GridCard from "./GridCard";
 import { Icon, MagnifyingGlassIcon, ArrowUpIcon, ArrowDownIcon } from "@phosphor-icons/react";
 import { Link, useNavigate } from "react-router";
-import { useLayout } from "@/contexts/LayoutContext";
+import { useLayoutViewport } from "@/contexts/LayoutContext";
 import { IComponentFilter, useSearch } from "@domains/discovery/contexts/SearchContext";
 import PaperIcon from "../PaperIcon";
 import PaperInput from "../PaperInput";
@@ -23,6 +23,8 @@ interface IPaperThingsProps {
   defaultMode?: string;
   customViews?: Record<string, React.ReactNode>;
   storageKey?: string;
+  mobileGridColumns?: 1 | 2;
+  label?: string;
 }
 
 export default function PaperThings({
@@ -31,12 +33,14 @@ export default function PaperThings({
   defaultMode,
   customViews,
   storageKey,
+  mobileGridColumns = 1,
+  label,
 }: IPaperThingsProps) {
   if (modes.length === 0) {
     throw new Error("No modes provided");
   }
 
-  const { isMobile } = useLayout();
+  const { isMobile } = useLayoutViewport();
   const searchContext = useSearch();
 
   const [mode, setMode] = useState(defaultMode || modes[0].value);
@@ -101,19 +105,19 @@ export default function PaperThings({
     return processedThings;
   }, [things, filterQuery, sort]);
 
-  const builtInViews: Record<string, React.FC<{ things: IThing[] }>> = {
-    list: ThingList,
-    grid: ThingGrid,
-  };
-
   const sortOptions = [
     { value: "title", label: "Title" },
     { value: "createdAt", label: "Created" },
     { value: "updatedAt", label: "Updated" },
   ];
 
-  const ViewComponent = builtInViews[mode];
   const CustomView = customViews?.[mode];
+  const builtInView =
+    mode === "list" ? (
+      <ThingList things={filteredAndSortedThings} />
+    ) : mode === "grid" ? (
+      <ThingGrid things={filteredAndSortedThings} mobileGridColumns={mobileGridColumns} />
+    ) : null;
 
   const filterInput = (
     <PaperInput
@@ -185,10 +189,17 @@ export default function PaperThings({
     <div className={styles.paperThings}>
       <Stack gap="md">
         <Group justify="space-between" align="flex-start">
-          <Title order={2}>
-            {filteredAndSortedThings.length} Item
-            {filteredAndSortedThings.length === 1 ? "" : "s"}
-          </Title>
+          <Stack gap={2}>
+            {label && (
+              <Text size="xs" fw="bold" tt="uppercase" c="dimmed">
+                {label}
+              </Text>
+            )}
+            <Title order={2}>
+              {filteredAndSortedThings.length} Item
+              {filteredAndSortedThings.length === 1 ? "" : "s"}
+            </Title>
+          </Stack>
           {isMobile ? (
             <Stack w="100%" gap="md">
               {filterInput}
@@ -206,11 +217,7 @@ export default function PaperThings({
           )}
         </Group>
         <div className={styles.content}>
-          {CustomView ? (
-            CustomView
-          ) : ViewComponent ? (
-            <ViewComponent things={filteredAndSortedThings} />
-          ) : (
+          {CustomView ?? builtInView ?? (
             <div>
               View '<strong>{mode}</strong>' not supported
             </div>
@@ -235,15 +242,17 @@ function ThingList({ things }: IThingTableProps) {
         const Icon = t.icon;
 
         return (
-          <ContextMenuWrapper thing={t}>
+          <ContextMenuWrapper key={t.id} thing={t}>
             <div
-              className={`${styles.thingListItem} ${oneChild ? styles.oneChild : ""}`}
-              key={t.id}
+              className={`${styles.thingListItem} ${oneChild ? styles.oneChild : ""} ${
+                t.state === "suggested" ? styles.suggested : ""
+              }`}
               style={{ animationDelay: `${Math.log(index + 1) * 75}ms` }}
-              onClick={() => {
-                if (t.link) {
+              onClick={(event) => {
+                if (t.link && !t.preventClickDefault) {
                   navigate(t.link);
                 }
+                t.onClick?.(t.id, event);
               }}
             >
               <Group wrap="nowrap" gap="sm" align="center">
@@ -263,6 +272,20 @@ function ThingList({ things }: IThingTableProps) {
                     {t.detail}
                   </Text>
                 </Stack>
+                {t.action && (
+                  <button
+                    type="button"
+                    className={`${styles.listAction} ${t.state === "suggested" ? styles.suggestedAction : ""}`}
+                    aria-label={t.action.tooltip}
+                    title={t.action.tooltip}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      t.action?.onClick(t.id, event);
+                    }}
+                  >
+                    <t.action.icon weight="bold" />
+                  </button>
+                )}
               </Group>
             </div>
           </ContextMenuWrapper>
@@ -272,9 +295,9 @@ function ThingList({ things }: IThingTableProps) {
   );
 }
 
-function ThingGrid({ things }: IThingTableProps) {
+function ThingGrid({ things, mobileGridColumns }: IThingTableProps & { mobileGridColumns: 1 | 2 }) {
   return (
-    <div className={styles.thingGrid}>
+    <div className={`${styles.thingGrid} ${mobileGridColumns === 2 ? styles.twoColumnMobile : ""}`}>
       {things.map((thing, index) => (
         <div
           key={thing.id}

@@ -25,6 +25,8 @@ src/locales/**/messages.ts
 # Coverage directory used by tools like istanbul
 coverage
 *.lcov
+playwright-report/
+test-results/
 
 # nyc test coverage
 .nyc_output
@@ -130,6 +132,7 @@ dist
 # SurrealDB Database
 data/*
 db_backups/*
+temp_backups/*
 
 # Auth stuff
 auth/*
@@ -137,5 +140,6 @@ credentials/*
 
 # Agentic Stuff
 .opencode/
+.codex/
 AGENTS.local.md
 #conductor

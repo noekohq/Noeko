@@ -1,39 +1,38 @@
-import { EmbeddingsProvider } from ".";
+import type { EmbeddingsProvider } from ".";
+import { getEmbeddingsConfig, type EmbeddingsConfig } from "./config";
+import DeterministicProvider from "./providers/deterministic";
 import GoogleProvider from "./providers/google";
+import OpenAIProvider from "./providers/openai";
 
-const { EMBEDDINGS_PROVIDER } = process.env;
+const PROVIDER_INSTANCES: Partial<Record<string, EmbeddingsProvider>> = {};
 
-const SupportedProviders = ["google"];
-const isValidProvider = (provider: string) => SupportedProviders.includes(provider);
+const getProviderCacheKey = (config: EmbeddingsConfig) => {
+  return [config.provider, config.model ?? "", config.dimension].join(":");
+};
 
-if (!EMBEDDINGS_PROVIDER) {
-  throw new Error(`EMBEDDINGS_PROVIDER is not defined`);
-}
+const createProvider = (config: EmbeddingsConfig): EmbeddingsProvider => {
+  if (config.provider === "google") {
+    return new GoogleProvider(config);
+  }
 
-if (!isValidProvider(EMBEDDINGS_PROVIDER)) {
-  throw new Error(`EMBEDDINGS_PROVIDER ${EMBEDDINGS_PROVIDER} is not supported`);
-}
+  if (config.provider === "openai") {
+    return new OpenAIProvider(config);
+  }
 
-type IProviderKey = (typeof SupportedProviders)[number];
+  if (config.provider === "deterministic") {
+    return new DeterministicProvider(config);
+  }
 
-const PROVIDER_INSTANCES: Partial<Record<IProviderKey, EmbeddingsProvider>> = {};
-
-const PROVIDER_CREATORS: Record<IProviderKey, () => EmbeddingsProvider> = {
-  google: () => new GoogleProvider(),
+  throw new Error(`Unsupported embeddings provider: ${config.provider}`);
 };
 
 export const getEmbedder = (): EmbeddingsProvider => {
-  if (!EMBEDDINGS_PROVIDER) {
-    throw new Error(`EMBEDDINGS_PROVIDER is not defined`);
-  }
-  if (!isValidProvider(EMBEDDINGS_PROVIDER)) {
-    throw new Error(`EMBEDDINGS_PROVIDER ${EMBEDDINGS_PROVIDER} is not supported`);
+  const config = getEmbeddingsConfig();
+  const cacheKey = getProviderCacheKey(config);
+
+  if (!PROVIDER_INSTANCES[cacheKey]) {
+    PROVIDER_INSTANCES[cacheKey] = createProvider(config);
   }
 
-  const providerKey = EMBEDDINGS_PROVIDER as IProviderKey;
-  if (!PROVIDER_INSTANCES[providerKey]) {
-    PROVIDER_INSTANCES[providerKey] = PROVIDER_CREATORS[providerKey]();
-  }
-
-  return PROVIDER_INSTANCES[providerKey]!;
+  return PROVIDER_INSTANCES[cacheKey]!;
 };

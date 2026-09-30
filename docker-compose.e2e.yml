@@ -1,0 +1,18 @@
+services:
+  surrealdb-e2e:
+    image: surrealdb/surrealdb:v3.2.3
+    entrypoint:
+      - /surreal
+      - start
+      - --user
+      - twig
+      - --pass
+      - secret
+      - memory
+    ports:
+      - "127.0.0.1:8002:8000"
+    healthcheck:
+      test: ["CMD", "/surreal", "is-ready", "--endpoint", "http://localhost:8000"]
+      interval: 1s
+      timeout: 2s
+      retries: 30

@@ -2,6 +2,7 @@ import { RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../database/db";
 import { IIdea } from "../../shared/types/idea";
 import { getEmbedder } from "../ai/embeddings/embeddings";
+import { toPersistedVector } from "../ai/embeddings/vectors";
 import { ITag } from "../../shared/types/tags";
 import { IRabbithole } from "../database/models/rabbithole";
 import { ITask } from "../database/models/task";
@@ -26,6 +27,7 @@ import {
   ISemanticSourceResult,
   ISemanticExcerptResult,
 } from "../../shared/types/search";
+import { GLOBAL_SEMANTIC_SEARCH_THRESHOLD } from "../../shared/constants/semantic";
 import { FilterQueryBuilder } from "../lib/query/FilterQueryBuilder";
 import { logger } from "./Logger";
 
@@ -36,7 +38,7 @@ export class Search {
     FTS_CONTENT: 1,
   };
   public static readonly EXACT_TITLE_BONUS = 2.0;
-  public static readonly SEMANTIC_THRESHOLD = 0.45;
+  public static readonly SEMANTIC_THRESHOLD = GLOBAL_SEMANTIC_SEARCH_THRESHOLD;
   public static readonly RRF_K = 60;
 
   constructor() {}
@@ -157,7 +159,7 @@ export class Search {
       DEFINE INDEX IF NOT EXISTS idx_idea_title_fts
         ON TABLE idea
         FIELDS title
-        SEARCH ANALYZER idea_analyzer
+        FULLTEXT ANALYZER idea_analyzer
         BM25 HIGHLIGHTS;
       `;
     };
@@ -170,7 +172,7 @@ export class Search {
       DEFINE INDEX IF NOT EXISTS idx_idea_content_fts
         ON TABLE idea
         FIELDS contentPlain
-        SEARCH ANALYZER idea_analyzer
+        FULLTEXT ANALYZER idea_analyzer
         BM25 HIGHLIGHTS
         CONCURRENTLY;
       `;
@@ -181,7 +183,7 @@ export class Search {
       DEFINE INDEX IF NOT EXISTS idx_tag_name_fts
         ON TABLE tag
         FIELDS name
-        SEARCH ANALYZER tag_analyzer
+        FULLTEXT ANALYZER tag_analyzer
         BM25 HIGHLIGHTS;
       `;
     };
@@ -191,7 +193,7 @@ export class Search {
       DEFINE INDEX IF NOT EXISTS idx_tag_description_fts
         ON TABLE tag
         FIELDS description
-        SEARCH ANALYZER tag_analyzer
+        FULLTEXT ANALYZER tag_analyzer
         BM25 HIGHLIGHTS;
       `;
     };
@@ -201,7 +203,7 @@ export class Search {
       DEFINE INDEX IF NOT EXISTS idx_rabbithole_fts
         ON TABLE rabbithole
         FIELDS name
-        SEARCH ANALYZER rabbithole_analyzer
+        FULLTEXT ANALYZER rabbithole_analyzer
         BM25 HIGHLIGHTS;
       `;
     };
@@ -211,7 +213,7 @@ export class Search {
           DEFINE INDEX IF NOT EXISTS idx_task_description_fts
             ON TABLE task
             FIELDS description
-            SEARCH ANALYZER task_analyzer
+            FULLTEXT ANALYZER task_analyzer
             BM25 HIGHLIGHTS;
           `;
     };
@@ -221,7 +223,7 @@ export class Search {
           DEFINE INDEX IF NOT EXISTS idx_task_scratchpad_fts
             ON TABLE task
             FIELDS scratchpad
-            SEARCH ANALYZER task_analyzer
+            FULLTEXT ANALYZER task_analyzer
             BM25 HIGHLIGHTS;
           `;
     };
@@ -231,7 +233,7 @@ export class Search {
       DEFINE INDEX IF NOT EXISTS idx_source_display_name_fts
         ON TABLE source
         FIELDS displayName
-        SEARCH ANALYZER source_analyzer
+        FULLTEXT ANALYZER source_analyzer
         BM25 HIGHLIGHTS;
       `;
     };
@@ -241,7 +243,7 @@ export class Search {
       DEFINE INDEX IF NOT EXISTS idx_source_content_fts
         ON TABLE source
         FIELDS content
-        SEARCH ANALYZER source_analyzer
+        FULLTEXT ANALYZER source_analyzer
         BM25 HIGHLIGHTS;
       `;
     };
@@ -251,7 +253,7 @@ export class Search {
       DEFINE INDEX IF NOT EXISTS idx_excerpt_note_fts
         ON TABLE excerpt
         FIELDS note
-        SEARCH ANALYZER excerpt_analyzer
+        FULLTEXT ANALYZER excerpt_analyzer
         BM25 HIGHLIGHTS;
       `;
     };
@@ -261,7 +263,7 @@ export class Search {
       DEFINE INDEX IF NOT EXISTS idx_excerpt_source_text_fts
         ON TABLE excerpt
         FIELDS sourceText
-        SEARCH ANALYZER excerpt_analyzer
+        FULLTEXT ANALYZER excerpt_analyzer
         BM25 HIGHLIGHTS;
       `;
     };
@@ -609,7 +611,6 @@ export class Search {
     semanticResults: ISearchResult[],
     queryLower?: string // Optional: Passed in if you still want to apply the Exact Title Bonus
   ): ISearchResult[] {
-    console.log("Results: ", ftsResults, semanticResults);
     // 1. Sort inputs by their native scores to establish their ranks
     const sortedFts = this.sortByScore([...ftsResults]);
     const sortedSemantic = this.sortByScore([...semanticResults]);
@@ -815,6 +816,11 @@ export class Search {
       if (!embedding) {
         return [];
       }
+      const queryEmbedding = toPersistedVector(
+        embedding,
+        embedder.dimension,
+        "connectable search query embedding"
+      );
 
       const searches: ISearchResult[] = [];
       const allTables = !query.tables;
@@ -825,7 +831,7 @@ export class Search {
           searchQuery: query,
           userId,
         });
-        const results = await qb.searchVector(embedding);
+        const results = await qb.searchVector(queryEmbedding);
         if (!results) {
           console.error("Couldn't get idea search results");
         } else {
@@ -838,7 +844,7 @@ export class Search {
           searchQuery: query,
           userId,
         });
-        const results = await qb.searchVector(embedding);
+        const results = await qb.searchVector(queryEmbedding);
         if (!results) {
           console.error("Couldn't get task search results");
         } else {
@@ -851,7 +857,7 @@ export class Search {
           searchQuery: query,
           userId,
         });
-        const results = await qb.searchVector(embedding);
+        const results = await qb.searchVector(queryEmbedding);
         if (!results) {
           console.error("Couldn't get source search results");
         } else {
@@ -864,7 +870,7 @@ export class Search {
           searchQuery: query,
           userId,
         });
-        const results = await qb.searchVector(embedding);
+        const results = await qb.searchVector(queryEmbedding);
         if (!results) {
           console.error("Couldn't get excerpt search results");
         } else {
@@ -1344,36 +1350,43 @@ export class Search {
     try {
       const embeddingProcessor = getEmbedder();
       const queryEmbedding = await embeddingProcessor.embedContent(query).catch(() => null);
+      const persistedQueryEmbedding = queryEmbedding
+        ? toPersistedVector(
+            queryEmbedding,
+            embeddingProcessor.dimension,
+            "comprehensive search query embedding"
+          )
+        : null;
 
       const [ideaResults, sourceResults, taskResults, excerptResults] = await Promise.all([
         // Ideas
         (async () => {
           const fts = await this.ftsSearchIdeas(userId, query, options);
-          const semantic = queryEmbedding
-            ? await this.semanticSearchIdeas(userId, queryEmbedding, options)
+          const semantic = persistedQueryEmbedding
+            ? await this.semanticSearchIdeas(userId, persistedQueryEmbedding, options)
             : [];
           return this._mergeAndScore(fts, semantic, queryLower, "idea");
         })(),
         // Sources
         (async () => {
           const fts = await this.ftsSearchSources(userId, query);
-          const semantic = queryEmbedding
-            ? await this.semanticSearchSources(userId, queryEmbedding, options)
+          const semantic = persistedQueryEmbedding
+            ? await this.semanticSearchSources(userId, persistedQueryEmbedding, options)
             : [];
           return this._mergeAndScore(fts, semantic, queryLower, "source");
         })(),
         // Tasks
         (async () => {
           const fts = await this.ftsSearchTasks(userId, query);
-          const semantic = queryEmbedding
-            ? await this.semanticSearchTasks(userId, queryEmbedding, options)
+          const semantic = persistedQueryEmbedding
+            ? await this.semanticSearchTasks(userId, persistedQueryEmbedding, options)
             : [];
           return this._mergeAndScore(fts, semantic, queryLower, "task");
         })(),
         (async () => {
           const fts = await this.ftsSearchExcerpts(userId, query);
-          const semantic = queryEmbedding
-            ? await this.semanticSearchExcerpts(userId, queryEmbedding, options)
+          const semantic = persistedQueryEmbedding
+            ? await this.semanticSearchExcerpts(userId, persistedQueryEmbedding, options)
             : [];
           return this._mergeAndScore(fts, semantic, queryLower, "task");
         })(),
@@ -1400,11 +1413,16 @@ export class Search {
     options: { limit?: number; threshold?: number; candidates?: number } = {}
   ): Promise<ISearchResult[]> {
     try {
+      const queryEmbedding = toPersistedVector(
+        embedding,
+        getEmbedder().dimension,
+        "connectable search embedding"
+      );
       const [ideaResults, sourceResults, taskResults, excerptResults] = await Promise.all([
-        this.semanticSearchIdeas(userId, embedding, options),
-        this.semanticSearchSources(userId, embedding, options),
-        this.semanticSearchTasks(userId, embedding, options),
-        this.semanticSearchExcerpts(userId, embedding, options),
+        this.semanticSearchIdeas(userId, queryEmbedding, options),
+        this.semanticSearchSources(userId, queryEmbedding, options),
+        this.semanticSearchTasks(userId, queryEmbedding, options),
+        this.semanticSearchExcerpts(userId, queryEmbedding, options),
       ]);
 
       const allResults = [...ideaResults, ...sourceResults, ...taskResults, ...excerptResults];
@@ -1533,6 +1551,11 @@ export class Search {
     }
   ): Promise<ITagSearchResult[]> {
     try {
+      const queryEmbedding = toPersistedVector(
+        embedding,
+        getEmbedder().dimension,
+        "tag search embedding"
+      );
       const db = await getDatabase();
       if (!db) {
         throw new Error("Database connection not available for semantic tag search.");
@@ -1570,7 +1593,7 @@ export class Search {
 
       const [dbResults] = await db.query<(ITag & { distance: number })[][]>(query, {
         userId: new StringRecordId(userId),
-        embedding: embedding,
+        embedding: queryEmbedding,
       });
 
       if (!dbResults) return [];
@@ -1625,10 +1648,18 @@ export class Search {
       let semanticResults: ITagSearchResult[] = [];
 
       if (embedding) {
-        semanticResults = await Search.semanticSearchTags(userId, embedding, {
-          limit,
-          threshold: Search.SEMANTIC_THRESHOLD,
-        });
+        semanticResults = await Search.semanticSearchTags(
+          userId,
+          toPersistedVector(
+            embedding,
+            embeddingProcessor.dimension,
+            "comprehensive tag search query embedding"
+          ),
+          {
+            limit,
+            threshold: Search.SEMANTIC_THRESHOLD,
+          }
+        );
       }
 
       const combinedResultsMap = new Map<string, ITagSearchResult>();
@@ -1772,9 +1803,9 @@ export class ConnectableTableSearchBuilder {
 
   public vectorEffort() {
     const effort = this.searchQuery.vectorSettings?.effort ?? "mid";
-    const limit = this.searchQuery.limit ?? this.defaultLimit;
+    const limit = Math.max(1, Math.floor(this.searchQuery.limit ?? this.defaultLimit));
     if (typeof effort === "number") {
-      return effort;
+      return Math.max(limit, Math.floor(effort));
     }
     switch (effort) {
       case "low":
@@ -1992,9 +2023,7 @@ export class ConnectableTableSearchBuilder {
       if (!results || !results[0]) {
         console.error("Failed to get ideas with FTS: ", results);
       }
-      console.log("Running query: ", query, params);
       const [r] = results;
-      console.log("For results: ", r);
       const mapper = ConnectableTableSearchBuilder.mapTableSearch[this.table];
       const searchResults = r.map((r) => mapper.fts(r));
       return searchResults;
@@ -2011,27 +2040,36 @@ export class ConnectableTableSearchBuilder {
     const { vectorFields, specialClauses } =
       ConnectableTableSearchBuilder.tableSelector[this.table];
     const { where: filterWhere, params: filterParams } = this.queryBuilder.build();
-    const limit = this.searchQuery.limit ?? this.defaultLimit;
+    const limit = Math.max(1, Math.floor(this.searchQuery.limit ?? this.defaultLimit));
     const effort = this.vectorEffort();
+    const threshold = this.searchQuery.vectorSettings?.threshold ?? Search.SEMANTIC_THRESHOLD;
 
+    // Keep graph predicates outside the HNSW scan. SurrealDB v3 currently plans
+    // relationship predicates as KNN pre-filters but returns no candidates for them.
+    // `effort` controls the ANN candidate pool; access, scope, and threshold filters
+    // are applied before anything is returned to the caller.
     const baseQuery = `
-        SELECT * FROM (
+        SELECT * OMIT embeddingMagnitude FROM (
           SELECT
             *,
+            vector::magnitude(embeddings) AS embeddingMagnitude,
             ${vectorFields.map((f) => {
               return `vector::similarity::cosine(${f}, $embedding) AS similarity`;
             })}
           OMIT ${vectorFields.join(", ")}
           FROM ${this.table}
-          WHERE
-            ${filterWhere.join(" AND ")} AND
-            embeddings <|${limit}, ${effort}|> $embedding AND
-            embeddings != NONE ${
-              specialClauses?.length ? `AND ${specialClauses.join(" AND ")}` : ""
-            }
+          WHERE embeddings <|${effort}, ${effort}|> $embedding
         )
-        WHERE similarity >= ${Search.SEMANTIC_THRESHOLD}
-        ORDER BY similarity DESC;
+        WHERE
+          ${filterWhere.join(" AND ")} AND
+          embeddingMagnitude > 0 AND
+          similarity != NONE AND
+          similarity != NULL AND
+          similarity >= $threshold ${
+            specialClauses?.length ? `AND ${specialClauses.join(" AND ")}` : ""
+          }
+        ORDER BY similarity DESC
+        LIMIT ${limit};
         `;
 
     return {
@@ -2039,24 +2077,28 @@ export class ConnectableTableSearchBuilder {
       params: {
         ...filterParams,
         embedding,
+        threshold,
       },
     };
   }
 
   public async searchVector(embedding: number[]): Promise<ISearchResult[] | undefined> {
     try {
+      const queryEmbedding = toPersistedVector(
+        embedding,
+        getEmbedder().dimension,
+        `${this.table} search embedding`
+      );
       const db = await getDatabase();
       if (!db) {
         throw new Error("Couldn't get database");
       }
-      const { query, params } = this.buildVector(embedding);
+      const { query, params } = this.buildVector(queryEmbedding);
       const results = await db.query<[ISemanticResult[]]>(query, params);
       if (!results || !results[0]) {
         console.error("Failed to get ideas with vector search: ", results);
       }
-      console.log("Running query: ", query, params);
       const [r] = results;
-      console.log("For results: ", r);
       const mapper = ConnectableTableSearchBuilder.mapTableSearch[this.table];
       const searchResults = r.map((r) => mapper.vector(r));
       return searchResults;

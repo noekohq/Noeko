@@ -21,7 +21,7 @@ export const isDarkScheme = () => {
   return prefersDarkMode;
 };
 
-export const getCurrentScheme = (): IThemeSpec["scheme"] => {
+export const getCurrentScheme = (): Exclude<IThemeSpec["scheme"], "auto"> => {
   if (isDarkScheme()) {
     return "dark";
   }
@@ -103,15 +103,22 @@ export const setCssVariable = (variableName: string, value: string): void => {
 };
 
 export const applyStyleBlocks = (blocks: ICSSApplicator["blocks"]): void => {
-  for (const [selector, styleBlock] of Object.entries(blocks)) {
-    const elements = document.querySelectorAll(selector);
+  const styleId = "noeko-active-theme";
+  let styleElement = document.getElementById(styleId) as HTMLStyleElement | null;
 
-    elements.forEach((element) => {
-      if (element instanceof HTMLElement) {
-        for (const [property, value] of Object.entries(styleBlock)) {
-          element.style.setProperty(property, value);
-        }
-      }
-    });
+  if (!styleElement) {
+    styleElement = document.createElement("style");
+    styleElement.id = styleId;
+    document.head.appendChild(styleElement);
   }
+
+  styleElement.textContent = Object.entries(blocks)
+    .map(([selector, styleBlock]) => {
+      const declarations = Object.entries(styleBlock)
+        .map(([property, value]) => `  ${property}: ${value};`)
+        .join("\n");
+
+      return `${selector} {\n${declarations}\n}`;
+    })
+    .join("\n\n");
 };

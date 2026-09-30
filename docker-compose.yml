@@ -14,11 +14,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-version: "3.9"
-
 services:
   surrealdb:
-    image: surrealdb/surrealdb:latest
+    image: surrealdb/surrealdb:v3.2.3
     env_file:
       - ./.env # Assuming .env is in the project root
     entrypoint:
@@ -28,13 +26,20 @@ services:
       - $DB_USER
       - --pass
       - $DB_PASSWORD
-      - file:///data/database.db # Updated to use file:// for clarity with volume path
+      - rocksdb:///data/database.db
     ports:
       - "127.0.0.1:$DB_PORT:8000"
+    healthcheck:
+      test: ["CMD", "/surreal", "is-ready", "--endpoint", "http://localhost:8000"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
     networks:
       - app
     volumes:
-      - surrealdb_data:/data # Using the named volume
+      # v3 cannot open the v2 RocksDB files in place. This is intentionally a new volume.
+      - surrealdb_data_v3:/data
       - ./temp_backups:/transfers
     user: root
   # redis:
@@ -68,7 +73,10 @@ networks:
     driver: bridge
 
 volumes:
+  # Keep surrealdb_data declared for rollback of a v2 deployment.
   surrealdb_data:
+    driver: local
+  surrealdb_data_v3:
     driver: local
   redis_data:
     driver: local

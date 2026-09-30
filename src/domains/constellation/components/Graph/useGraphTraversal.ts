@@ -12,7 +12,7 @@ interface TraversalParams {
 
 export function useGraphTraversal({ nodeMap, adjacencyList }: TraversalParams) {
   const {
-    selected: { add: addSelected, remove: removeSelected },
+    selected: { addMany: addSelected, removeMany: removeSelected },
   } = useGraph();
 
   // This recursive function for CONNECTABLE_TYPES is still perfect. No changes needed.
@@ -40,7 +40,7 @@ export function useGraphTraversal({ nodeMap, adjacencyList }: TraversalParams) {
       const edgeType = getNodeEdgeType(startNode);
 
       if (edgeType === "inclusion") {
-        addSelected(startNode.id.toString());
+        const selection = new Set<string>([startNode.id.toString()]);
 
         const tagsToExpand: INode[] = [];
         const directConnections = adjacencyList[startNode.id.toString()] || [];
@@ -48,7 +48,7 @@ export function useGraphTraversal({ nodeMap, adjacencyList }: TraversalParams) {
         directConnections.forEach((edge) => {
           if (edge.source === startNode.id.toString() && edge.type === "inclusion") {
             const neighborId = edge.target;
-            addSelected(neighborId);
+            selection.add(neighborId);
 
             const neighborNode = nodeMap[neighborId];
             if (neighborNode?.type === "tag") {
@@ -61,43 +61,46 @@ export function useGraphTraversal({ nodeMap, adjacencyList }: TraversalParams) {
           const tagConnections = adjacencyList[tagNode.id.toString()] || [];
           tagConnections.forEach((edge) => {
             if (edge.source === tagNode.id.toString() && edge.type === "description") {
-              addSelected(edge.target);
+              selection.add(edge.target);
             }
           });
         });
+        addSelected(selection);
         return;
       }
 
       if (edgeType === "description") {
-        addSelected(startNode.id.toString());
+        const selection = new Set<string>([startNode.id.toString()]);
 
         const directConnections = adjacencyList[startNode.id.toString()] || [];
 
         directConnections.forEach((edge) => {
           if (edge.source === startNode.id.toString() && edge.type === "description") {
-            addSelected(edge.target);
+            selection.add(edge.target);
           }
         });
+        addSelected(selection);
         return;
       }
 
       if (CONNECTABLE_TYPES.has(startNode.type)) {
         const clusterIds = new Set<string>();
         findConnectableCluster(startNode.id.toString(), clusterIds);
-        clusterIds.forEach((nodeId) => addSelected(nodeId));
+        addSelected(clusterIds);
         return;
       }
 
       // Handle user nodes - select user and all their shared items
       if (startNode.type === "user") {
-        addSelected(startNode.id.toString());
+        const selection = new Set<string>([startNode.id.toString()]);
         const directConnections = adjacencyList[startNode.id.toString()] || [];
         directConnections.forEach((edge) => {
           if (edge.type === "share") {
             const neighborId = edge.source === startNode.id.toString() ? edge.target : edge.source;
-            addSelected(neighborId);
+            selection.add(neighborId);
           }
         });
+        addSelected(selection);
         return;
       }
 
@@ -111,14 +114,14 @@ export function useGraphTraversal({ nodeMap, adjacencyList }: TraversalParams) {
       const edgeType = getNodeEdgeType(startNode);
 
       if (edgeType === "inclusion") {
-        removeSelected(startNode.id.toString());
+        const selection = new Set<string>([startNode.id.toString()]);
         const tagsToExpand: INode[] = [];
         const directConnections = adjacencyList[startNode.id.toString()] || [];
 
         directConnections.forEach((edge) => {
           if (edge.source === startNode.id.toString() && edge.type === "inclusion") {
             const neighborId = edge.target;
-            removeSelected(neighborId);
+            selection.add(neighborId);
             const neighborNode = nodeMap[neighborId];
             if (neighborNode?.type === "tag") {
               tagsToExpand.push(neighborNode);
@@ -130,41 +133,44 @@ export function useGraphTraversal({ nodeMap, adjacencyList }: TraversalParams) {
           const tagConnections = adjacencyList[tagNode.id.toString()] || [];
           tagConnections.forEach((edge) => {
             if (edge.source === tagNode.id.toString() && edge.type === "description") {
-              removeSelected(edge.target);
+              selection.add(edge.target);
             }
           });
         });
+        removeSelected(selection);
         return;
       }
 
       if (edgeType === "description") {
-        removeSelected(startNode.id.toString());
+        const selection = new Set<string>([startNode.id.toString()]);
         const directConnections = adjacencyList[startNode.id.toString()] || [];
         directConnections.forEach((edge) => {
           if (edge.source === startNode.id.toString() && edge.type === "description") {
-            removeSelected(edge.target);
+            selection.add(edge.target);
           }
         });
+        removeSelected(selection);
         return;
       }
 
       if (CONNECTABLE_TYPES.has(startNode.type)) {
         const clusterIds = new Set<string>();
         findConnectableCluster(startNode.id.toString(), clusterIds);
-        clusterIds.forEach((nodeId) => removeSelected(nodeId));
+        removeSelected(clusterIds);
         return;
       }
 
       // Handle user nodes - deselect user and all their shared items
       if (startNode.type === "user") {
-        removeSelected(startNode.id.toString());
+        const selection = new Set<string>([startNode.id.toString()]);
         const directConnections = adjacencyList[startNode.id.toString()] || [];
         directConnections.forEach((edge) => {
           if (edge.type === "share") {
             const neighborId = edge.source === startNode.id.toString() ? edge.target : edge.source;
-            removeSelected(neighborId);
+            selection.add(neighborId);
           }
         });
+        removeSelected(selection);
         return;
       }
 

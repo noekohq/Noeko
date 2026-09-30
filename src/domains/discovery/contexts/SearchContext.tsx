@@ -2,6 +2,9 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { ISearchResult } from "../../../../shared/types/search";
 import { IGraphFilters } from "../../../../shared/types/constellation";
 import { ITag } from "../../../../shared/types/tags";
+import { IRabbithole } from "../../../../app/database/models/rabbithole";
+
+type IScopeRabbithole = Pick<IRabbithole, "id" | "name">;
 
 export type IComponentFilter = {
   query?: string;
@@ -35,6 +38,10 @@ type ISearchContext = {
       has: boolean;
     };
     scopeData: {
+      rabbithole: {
+        get: IScopeRabbithole | null;
+        set: (rabbithole: IScopeRabbithole | null) => void;
+      };
       tags: {
         get: ITag[];
         set: (tags: ITag[]) => void;
@@ -81,6 +88,10 @@ const initialSearch: ISearchContext = {
       has: false,
     },
     scopeData: {
+      rabbithole: {
+        get: null,
+        set: (rabbithole: IScopeRabbithole | null) => {},
+      },
       tags: {
         get: [],
         set: (tags: ITag[]) => {},
@@ -115,6 +126,7 @@ export const SearchProvider = ({ children }: ISearchProviderProps) => {
   const [topResult, setTopResult] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [scope, setScope] = useState<IGraphFilters>({});
+  const [scopeRabbithole, setScopeRabbithole] = useState<IScopeRabbithole | null>(null);
   const [scopeTags, setScopeTags] = useState<ITag[]>([]);
   const [glimpseMode, setGlimpseMode] = useState(false);
   const [showScope, setShowScope] = useState(false);
@@ -192,6 +204,10 @@ export const SearchProvider = ({ children }: ISearchProviderProps) => {
         has: hasScope(),
       },
       scopeData: {
+        rabbithole: {
+          get: scopeRabbithole,
+          set: setScopeRabbithole,
+        },
         tags: {
           get: scopeTags,
           set: setScopeTags,

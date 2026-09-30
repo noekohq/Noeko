@@ -1,114 +1,182 @@
-# Getting Started
+# Self-hosting Noeko
 
-This guide provides instructions for deploying and managing a production instance of Noeko on your own server or local machine using Docker.
+This guide deploys a production instance of Noeko with Docker Compose. The
+standard stack includes the application and SurrealDB `v3.2.3`, with database
+data persisted in a named Docker volume.
 
 ## Prerequisites
 
 - A server or virtual machine with Docker and Docker Compose installed.
-- `git` installed on the server to clone the repository.
+- `git` and Bun installed on the server to clone the repository and run its
+  deployment commands.
 - A basic understanding of the command line.
 
-## Step 1: Get the Code
+## Step 1: Get the code
 
-First, clone the Noeko repository to your server and navigate into the directory.
+Clone Noeko and enter the project directory:
 
 ```sh
 git clone https://github.com/noekohq/Noeko.git
 cd Noeko
 ```
 
-## Step 2: Configuration
+## Step 2: Configure the environment
 
-Noeko is configured using an `.env` file. You must create one by copying the provided example:
+Create your deployment environment file from the example:
 
 ```sh
 cp .env.example .env
 ```
 
-**This is the most important step.** You must open the `.env` file and edit the variables for your environment.
+Open `.env` and replace all example values before starting the stack.
 
-**Crucial variables to change:**
-- `PORT`: The port the application will run on.
-- `DB_USER`, `DB_PASSWORD`: Set a secure username and password for your database.
-- `JWT_SECRET`, `ENCRYPTION_KEY`: Generate long, random, and secure strings for these values.
-- `CLIENT_ORIGIN`: The public URL of your application (e.g., `https://noeko.example.com`).
+### Required application and database settings
 
-## Step 3: Build and Launch
+- `PORT`: The port the application listens on.
+- `DB_USER`, `DB_PASSWORD`: Strong, unique SurrealDB root credentials.
+- `JWT_SECRET`, `ENCRYPTION_KEY`: Long, random secret values.
+- `CLIENT_ORIGIN`: The public application URL, such as
+  `https://noeko.example.com`.
 
-With your configuration in place, you can build the production Docker image and launch the entire application stack with a single command:
+### AI configuration
+
+Choose providers and supply their credentials before starting the app. For the
+current OpenAI deployment profile, set:
+
+```dotenv
+LM_PROVIDER="openai"
+EMBEDDINGS_PROVIDER="openai"
+EMBEDDINGS_MODEL="text-embedding-3-small"
+EMBEDDINGS_DIMENSION=768
+OPENAI_API_KEY="replace-with-your-key"
+```
+
+`EMBEDDINGS_DIMENSION` must remain `768` unless a database migration recreates
+the SurrealDB vector indexes at the new dimension. Google and deterministic
+providers remain supported; see the
+[embedding-provider guide](./guides/EMBEDDING_PROVIDERS.md) for their
+configuration and safe provider/model changeovers.
+
+If this is an existing SurrealDB 2 deployment, do **not** start SurrealDB 3
+against the old RocksDB volume. Follow the
+[SurrealDB v3 upgrade runbook](../docs/operations/surrealdb-v3-upgrade.md)
+instead.
+
+## Step 3: Build and launch
+
+Build the production Docker image and start the stack in the background:
 
 ```sh
-bun run prod
-```
-or
-```sh
-bun run prod -d # -d for detached
+bun run prod -d
 ```
 
-Under the hood this script maps to:
+Without `-d`, `bun run prod` keeps Compose attached to the terminal. The
+detached command maps to:
+
 ```sh
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
 ```
 
-Here's what this command does:
-- `--build`: Builds the lean, production-ready Docker image based on the `Dockerfile`. This only needs to be done the first time or when you update the application code.
-- `-d`: Runs the application in "detached" mode, meaning it runs in the background.
+`--build` creates the production image from the current application source.
+Use it for the first launch and after application-code updates.
 
-Once the command finishes, your Noeko instance will be running and accessible at the URL and port you specified in your `.env` file.
+Verify the initial deployment before opening it to users:
 
-## Managing Your Instance
+```sh
+docker compose -f docker-compose.yml -f docker-compose.prod.yml ps
+curl --fail http://127.0.0.1:"$PORT"/api/healthcheck
+docker compose -f docker-compose.yml -f docker-compose.prod.yml logs --tail=100 app surrealdb
+```
 
-Here are the common commands you will use to manage your running application.
+The application runs database migrations during startup. Confirm that its log
+reports migrations are up to date and that Search, Analysis, Insights, and
+Graph services initialized successfully.
 
-- **Build & Start the Application**
+## Managing the standard Docker stack
+
+- **Build and start in the background**
+
   ```sh
-  bun run prod
+  bun run prod -d
   ```
-- **Stop the application:**
+
+- **Stop the stack**
+
   ```sh
   bun run prod:stop
   ```
-- **Start the application:**
+
+- **Start existing containers**
+
   ```sh
-  bun run prod:start
+  bun run prod:start -d
   ```
-- **Restart the application server:**
+
+- **Restart services**
+
   ```sh
   bun run prod:restart
   ```
-- **View application logs:**
+
+- **Follow logs**
+
   ```sh
   bun run prod:logs
   ```
 
-## Updating to a New Version
+Do not run `docker compose down -v` on production. The `-v` flag deletes named
+volumes, including the SurrealDB data volume.
 
-To update your Noeko instance to the latest version:
+## Updating to a new version
 
-1.  Pull the latest code from the repository:
-    ```sh
-    git pull
-    ```
-2.  Re-run the launch command with the `--build` flag to create a new production image with the updated code:
-    ```sh
-    bun run prod -d
-    ```
+1. Pull the intended release:
 
-## Database Management
+   ```sh
+   git pull --ff-only
+   ```
 
-> [!note]
-> The database connection and administration is currently a work-in-progress area as we build out a better migration system and vector index.
+2. Rebuild and recreate the application:
 
-The database data is persisted in a Docker volume, so it will not be lost when you stop or update the application.
+   ```sh
+   bun run prod -d
+   ```
 
-For administrative tasks like backups and migrations, you can use the scripts defined in `package.json`. These commands should be run within the running `app` container.
+3. Recheck the health endpoint and logs from Step 3.
 
-**Example: Running a database migration**
+If the update changes the embedding provider, model, or dimensions, follow the
+[embedding changeover runbook](./guides/EMBEDDING_PROVIDERS.md) rather than
+simply restarting the stack.
+
+## Database management
+
+The database is persisted in a named Docker volume, so normal stop/start and
+application updates preserve data. For administrative tasks, run repository
+scripts from the host at the project root. The production app image contains
+only runtime files and does not include the repository's `scripts/` directory.
+
+The app applies normal database migrations automatically during startup. Useful
+host-side commands include:
+
 ```sh
-bun run db:migrate
-```
+# Inspect migration status
+bun run db:migration:status
 
-**Example: Creating a local backup**
-```sh
+# Create a logical export
 bun run db:export
 ```
+
+Keep a stopped-volume archive as well as logical exports. A volume archive is
+the recovery artifact for database-engine upgrades, while logical exports are
+useful for validation and migration. See the
+[database migration guide](./guides/DATABASE_MIGRATIONS.md) before authoring
+schema changes.
+
+## Standard Docker deployment vs. custom process managers
+
+This guide assumes the Compose `app` service owns the backend lifecycle. Some
+installations run the backend outside Compose (for example, with Supervisor)
+while Compose owns only SurrealDB. In that topology, stop application writes
+through the process manager before database maintenance, deploy and build the
+backend with that process manager's release procedure, and use Compose only for
+the `surrealdb` service. The v3 upgrade runbook includes the Supervisor-aware
+sequence used for the current production deployment.

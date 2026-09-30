@@ -1,6 +1,7 @@
 import { RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../../db";
 import { getEmbedder } from "../../../ai/embeddings/embeddings";
+import { buildReadyEmbeddingUpdate, isEmbeddingCurrent } from "../../../ai/embeddings/lifecycle";
 import { getLM } from "../../../ai/lms/lm";
 import { User } from "../user";
 import { IPublicUser, ISafeUser, IUser } from "../../../../shared/types/user";
@@ -28,6 +29,7 @@ import {
 } from "../../../../shared/types/idea";
 import { IIdeaShare, IIdeaShareAccess, IIdeaShareDetails } from "../../../../shared/types/share";
 import { IDBGraph, IDBGraphWithComputedFields } from "../../../../shared/types/constellation";
+import RabbitholeRecommendations from "../../../services/RabbitholeRecommendations";
 
 const embeddableContentLimit = max_embeddable_characters;
 
@@ -99,6 +101,8 @@ export class Idea {
       throw new Error("Couldn't get database");
     }
 
+    await db.query(`DEFINE TABLE IF NOT EXISTS shared_with SCHEMALESS;`);
+
     // await db?.query(
     //   `DEFINE INDEX OVERWRITE idx_idea_timestamps ON TABLE idea COLUMNS createdAt, updatedAt, viewedAt;`,
     // );
@@ -142,7 +146,7 @@ export class Idea {
         LET $processedIdeas = SELECT
             *,
             ->is_source_for->(?).* as derivedList,
-            IF embeddings AND (count(embeddings) > 0 OR type::is::object(embeddings) AND count(object::keys(embeddings)) > 0) THEN
+            IF embeddings AND (count(embeddings) > 0 OR type::is_object(embeddings) AND count(object::keys(embeddings)) > 0) THEN
             (
               SELECT
                   *,
@@ -308,6 +312,7 @@ export class Idea {
       omitEmbeddings?: boolean;
       omitDerived?: boolean;
       wasImported?: boolean;
+      ownerId?: string | RecordId;
     }
   ) {
     try {
@@ -328,6 +333,27 @@ export class Idea {
       ) {
         throw new Error("Tried to add more notes than available.");
       }
+      const contentPlain = this.getPlainContent(form.content);
+      let embeddingFields:
+        | ReturnType<typeof buildReadyEmbeddingUpdate>
+        | { embeddings: null; embeddingsUpdatedAt: Date } = {
+        embeddings: null,
+        embeddingsUpdatedAt: new Date(),
+      };
+
+      if (!options?.omitEmbeddings) {
+        try {
+          const embedder = getEmbedder();
+          const embeddableContent = `${form.title}\n---\n${contentPlain}`;
+          const vector = await embedder.embedContent(embeddableContent);
+          if (vector) {
+            embeddingFields = buildReadyEmbeddingUpdate(embedder, embeddableContent, vector);
+          }
+        } catch (error) {
+          console.error("Error generating initial idea embeddings:", error);
+        }
+      }
+
       const result = await db?.create<
         IIdea,
         IIdeaForm & {
@@ -341,15 +367,14 @@ export class Idea {
       >("idea", {
         title: form.title,
         content: form.content,
-        contentPlain: this.getPlainContent(form.content),
+        contentPlain,
         contentPlainUpdatedAt: new Date(),
-        embeddings: null,
+        ...embeddingFields,
         visibility: "private",
         contentUpdatedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
         viewedAt: new Date(),
-        embeddingsUpdatedAt: new Date(),
         ...(options?.wasImported ? { importedAt: new Date() } : {}),
       });
       if (!result) {
@@ -357,12 +382,12 @@ export class Idea {
         return undefined;
       }
       const [idea] = result;
-      await Idea.connectToUser(idea.id, userId);
-      if (!options?.omitEmbeddings) {
-        await Idea.loadEmbeddings(idea.id);
-      }
+      await Idea.connectToOwner(idea.id, options?.ownerId ?? userId);
       if (!options?.omitDerived) {
         await Idea.runDerivedCascade(idea.id);
+      }
+      if (idea.embeddings?.length) {
+        await RabbitholeRecommendations.scheduleEvaluation(idea.id);
       }
       return idea;
     } catch (err) {
@@ -460,24 +485,28 @@ export class Idea {
   }
 
   static async connectToUser(ideaId: string | RecordId, userId: string | RecordId) {
+    return Idea.connectToOwner(ideaId, userId);
+  }
+
+  static async connectToOwner(ideaId: string | RecordId, ownerId: string | RecordId) {
     try {
       const db = await getDatabase();
       const result = await db?.query<[IIdeaUserOwnership & { id: RecordId }]>(
         `RELATE $fromId -> owns -> $toId SET createdAt = $now;`,
         {
-          fromId: new StringRecordId(userId),
+          fromId: new StringRecordId(ownerId),
           toId: new StringRecordId(ideaId),
           now: new Date(),
         }
       );
       if (!result) {
-        console.error(`No ownership created for idea "${ideaId}" and user "${userId}".`);
+        console.error(`No ownership created for idea "${ideaId}" and owner "${ownerId}".`);
         return undefined;
       }
       const [ownership] = result;
       return ownership;
     } catch (err) {
-      console.error(`Error during connectToUser for idea "${ideaId}":`, err);
+      console.error(`Error during connectToOwner for idea "${ideaId}":`, err);
       return undefined;
     }
   }
@@ -1316,7 +1345,7 @@ export class Idea {
   static mapDerived(derived: IIdeaDerived[]) {
     const map: IIdeaDerivedMap = {};
     derived.forEach((d) => {
-      const type = d.id.tb as keyof IIdeaDerivedMap;
+      const type = d.id.table.name as keyof IIdeaDerivedMap;
       map[type] = d;
     });
     return map;
@@ -1332,7 +1361,7 @@ export class Idea {
       }
       const map: IIdeaDerivedMap = {};
       derived.forEach((d) => {
-        const type = d.id.tb as keyof IIdeaDerivedMap;
+        const type = d.id.table.name as keyof IIdeaDerivedMap;
         map[type] = d;
       });
       return map;
@@ -1534,15 +1563,11 @@ export class Idea {
 
   static async updateEmbeddings(idea: IIdea, force = false) {
     try {
-      if (
-        !force &&
-        idea.embeddingsUpdatedAt >= idea.contentUpdatedAt &&
-        idea.embeddings?.length !== 0
-      ) {
-        return false;
-      }
       const embedding = getEmbedder();
       const embeddableContent = Idea.getEmbeddableContent(idea);
+      if (!force && isEmbeddingCurrent(idea, embedding, embeddableContent)) {
+        return false;
+      }
       // if (
       //   !embeddableContent ||
       //   embeddableContent.length > embeddableContentLimit
@@ -1558,10 +1583,16 @@ export class Idea {
       // The idea is that now the embedContent will automatically truncate the characters based on model considerations
       // So we tune there instead
       const vector = await embedding.embedContent(embeddableContent);
-      return await Idea.update(idea.id, {
-        embeddings: vector,
-        embeddingsUpdatedAt: new Date(),
+      if (!vector) {
+        throw new Error("No embedding generated");
+      }
+      const updated = await Idea.update(idea.id, {
+        ...buildReadyEmbeddingUpdate(embedding, embeddableContent, vector),
       });
+      if (updated) {
+        await RabbitholeRecommendations.scheduleEvaluation(idea.id);
+      }
+      return updated;
     } catch (err) {
       console.error(`Error during updateEmbeddings for idea "${idea.id}":`, err);
     }
@@ -1575,10 +1606,7 @@ export class Idea {
           if (force) {
             return true;
           }
-          if (idea.embeddings && idea.embeddingsUpdatedAt! > idea.contentUpdatedAt) {
-            return false;
-          }
-          return true;
+          return !isEmbeddingCurrent(idea, e, Idea.getEmbeddableContent(idea));
         })
         .map((idea) => {
           return [
@@ -1596,14 +1624,20 @@ export class Idea {
         throw new Error("No embeddings generated");
       }
       const withEmbeddings = ideasAndContent.map(
-        (i, index) => [...i, embeddings[index]] as [string, string, number[]]
+        (i, index) =>
+          [
+            ...i,
+            embeddings[index] ? buildReadyEmbeddingUpdate(e, i[1], embeddings[index]) : null,
+          ] as [string, string, ReturnType<typeof buildReadyEmbeddingUpdate> | null]
       );
 
-      const updaters = withEmbeddings.map(([id, content, embeddings]) => {
+      const updaters = withEmbeddings.map(([id, content, embeddingUpdate]) => {
         return {
           id: id,
-          embeddings: embeddings.length > 0 ? embeddings : null,
-          embeddingsUpdatedAt: new Date(),
+          ...(embeddingUpdate ?? {
+            embeddings: null,
+            embeddingsUpdatedAt: new Date(),
+          }),
         } as { id: string } & Partial<Idea>;
       });
       const updates = await Idea.updateMany(updaters);

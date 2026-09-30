@@ -11,10 +11,42 @@ import { ISafeIdea } from "../../shared/types/idea";
 import Task, { ITask } from "../database/models/task";
 import { ISafeUser } from "../../shared/types/user";
 import { extensions } from "../lib/editing/tiptap/extensions";
+import { getDatabase } from "../database/db";
 import Authorization from "../services/Authorization";
 import { Connectable } from "../services/Graph";
 import { verifyToken } from "../utils/crypto";
 import { toBase64, toUint8Array } from "../utils/data";
+
+const getOrCreateInitialState = async (recordId: string, html: string) => {
+  const json = generateJSON(html, extensions);
+  const document = TiptapTransformer.toYdoc(json, "default", extensions);
+  const initialState = toBase64(encodeStateAsUpdate(document));
+  const db = await getDatabase();
+
+  if (!db) {
+    throw new Error(`Could not persist the initial collaboration state for ${recordId}.`);
+  }
+
+  // Converting the same HTML twice creates Yjs structures with different client
+  // IDs. If those structures later meet during a reconnect, Yjs correctly keeps
+  // both and the document appears duplicated. Persist the first conversion
+  // atomically and always return the winning state so every room load starts
+  // from the same Yjs history.
+  const [record] = await db.query<[{ yState?: string }]>(
+    `
+      UPDATE ONLY <record>$recordId
+      SET yState = IF yState = NONE OR yState = NULL THEN $initialState ELSE yState END
+      RETURN AFTER;
+    `,
+    { recordId, initialState }
+  );
+
+  if (!record?.yState) {
+    throw new Error(`Could not load the initial collaboration state for ${recordId}.`);
+  }
+
+  return toUint8Array(record.yState);
+};
 
 const database = new Database({
   fetch: async ({ documentName }) => {
@@ -29,30 +61,26 @@ const database = new Database({
     }
 
     switch (type) {
-      case "idea":
+      case "idea": {
         const idea = thing as ISafeIdea;
         if (idea.yState) {
           return toUint8Array(idea.yState);
         }
         if (idea.content) {
-          const json = generateJSON(idea.content, extensions);
-          const state = TiptapTransformer.toYdoc(json, "default", extensions);
-          const update = encodeStateAsUpdate(state);
-          return update;
+          return getOrCreateInitialState(recordId, idea.content);
         }
         return null;
-      case "task":
+      }
+      case "task": {
         const task = thing as ITask;
         if (task.yState) {
           return toUint8Array(task.yState);
         }
         if (task.scratchpad) {
-          const json = generateJSON(task.scratchpad, extensions);
-          const state = TiptapTransformer.toYdoc(json, "default", extensions);
-          const update = encodeStateAsUpdate(state);
-          return update;
+          return getOrCreateInitialState(recordId, task.scratchpad);
         }
         return null;
+      }
       default:
         return null;
     }

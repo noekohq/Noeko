@@ -13,6 +13,7 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+<<<<<<< HEAD
 #. js-lingui-explicit-id
 #: src/domains/knowledge/pages/Idea/Idea.tsx:358
 #~ msgid "Idea.charCount"
@@ -156,6 +157,11 @@ msgstr "un archivo markdown"
 #: src/domains/admin/pages/Feedback/Updates.tsx:60
 #~ msgid "A new \"today's tasks\" widget on your dashboard, letting you see all of the tasks scheduled for today."
 #~ msgstr "Un nuevo widget de \"tareas de hoy\" en tu tablero, que te permite ver todas las tareas programadas para hoy."
+=======
+#: src/domains/constellation/pages/Constellation/ConstellationContext.tsx:100
+#~ msgid "{0} node{1}, {2} connection{3}{filterText}"
+#~ msgstr ""
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 
 #: src/core/design/components/Layout/TopBar.tsx:35
 #: src/domains/discovery/components/Search/SearchBar.tsx:22
@@ -195,7 +201,7 @@ msgstr "Acceso denegado"
 msgid "Accessing your Rabbithole"
 msgstr "Accediendo a tu Rabbithole"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:50
+#: src/domains/identity/pages/Settings/Settings.tsx:53
 #: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:57
 msgid "Account & Identity"
 msgstr "Cuenta e identidad"
@@ -204,6 +210,7 @@ msgstr "Cuenta e identidad"
 msgid "Account deleted"
 msgstr "Cuenta eliminada"
 
+<<<<<<< HEAD
 #: src/domains/identity/pages/Users/UsersOld.tsx:729
 msgid "Actions"
 msgstr "Acciones"
@@ -226,14 +233,22 @@ msgid "Activity (last 7 days)"
 msgstr "Actividad (últimos 7 días)"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:71
+=======
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:259
+msgid "active key(s)"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:81
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 #: src/domains/identity/pages/Settings/views/ActivityNetworkCommunity.tsx:38
 msgid "Activity & Network"
 msgstr "Actividad y red"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:189
+#: src/domains/identity/pages/Settings/Settings.tsx:244
 msgid "activity log"
 msgstr "registro de actividad"
 
+<<<<<<< HEAD
 #: src/domains/knowledge/pages/Tags/Tags.tsx:193
 msgid "Add a tag"
 msgstr "Añadir una etiqueta"
@@ -291,6 +306,13 @@ msgstr "Error al añadir idea"
 #: src/domains/dashboard/pages/Dashboard/DashboardOld.tsx:272
 msgid "Admin Panel"
 msgstr "Panel de administración"
+=======
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:317
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:447
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:478
+msgid "Add webhook"
+msgstr ""
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 
 #: src/core/design/components/Layout/TopBar.tsx:25
 #: src/domains/discovery/components/Search/SearchBar.tsx:12
@@ -353,12 +375,41 @@ msgstr "Analizar fuente"
 msgid "Analyzing..."
 msgstr "Analizando..."
 
-#: src/domains/identity/pages/Settings/Settings.tsx:88
+#: src/domains/identity/pages/Settings/Settings.tsx:147
+#: src/domains/identity/pages/Settings/Settings.tsx:162
+msgid "animation"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:238
+msgid "API"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:131
+msgid "API key revoked"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:223
+msgid "API keys"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:249
+msgid "API Keys"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:75
+msgid "API keys & webhooks"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:392
+msgid "API reference"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:98
 msgid "appearance"
 msgstr "apariencia"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:57
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:100
+#: src/domains/identity/pages/Settings/Settings.tsx:60
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:109
 msgid "Appearance & Experience"
 msgstr "Apariencia y experiencia"
 
@@ -453,7 +504,11 @@ msgstr "Pregúntale cualquier cosa a tus pensamientos..."
 msgid "Attachments"
 msgstr "Adjuntos"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:100
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:542
+msgid "Attempt"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:109
 msgid "auto"
 msgstr "automático"
 
@@ -461,6 +516,7 @@ msgstr "automático"
 msgid "Auto"
 msgstr "Automático"
 
+<<<<<<< HEAD
 #: src/domains/identity/pages/Auth/ForgotPassword.tsx:132
 #: src/domains/identity/pages/Auth/ForgotPassword.tsx:145
 #: src/domains/identity/pages/Auth/ResetPassword.tsx:175
@@ -494,6 +550,19 @@ msgstr "Mejor descripción"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:108
 #: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:127
+=======
+#: src/domains/identity/pages/Settings/Settings.tsx:226
+#: src/domains/identity/pages/Settings/Settings.tsx:235
+msgid "automation"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:192
+msgid "backup"
+msgstr "copia de seguridad"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:117
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:168
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "Body Font"
 msgstr "Fuente del cuerpo"
 
@@ -501,6 +570,7 @@ msgstr "Fuente del cuerpo"
 msgid "Bring your data in from other platforms"
 msgstr "Importa tus datos desde otras plataformas"
 
+<<<<<<< HEAD
 #: src/domains/identity/pages/Auth/Register.tsx:341
 msgid "By creating an account, you agree to our <0>Privacy Policy</0> and <1>Terms of Service</1>."
 msgstr "Al crear una cuenta, aceptas nuestra <0>Política de Privacidad</0> y los <1>Términos de Servicio</1>."
@@ -554,6 +624,14 @@ msgid "Cancel."
 msgstr "Cancelar."
 
 #: src/domains/identity/pages/Settings/Settings.tsx:145
+=======
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:431
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:471
+msgid "Cancel"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:180
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "categories"
 msgstr "categorías"
 
@@ -570,6 +648,7 @@ msgstr "Chatea con desarrolladores y otros usuarios"
 msgid "Check out the Subreddit"
 msgstr "Visita el Subreddit"
 
+<<<<<<< HEAD
 #: src/domains/system/pages/Import/importers/MarkdownFile.tsx:121
 #: src/domains/system/pages/Import/importers/TextFile.tsx:121
 msgid "Choose a file"
@@ -584,10 +663,33 @@ msgid "Choose Location"
 msgstr "Elegir ubicación"
 
 #: src/core/design/components/Display/Interactions/GraphOrganizer/GraphOrganizer.tsx:57
+=======
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:161
+msgid "Choose between dark, light, or system default."
+msgstr "Elige entre claro, oscuro o el valor predeterminado del sistema."
+
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:203
+msgid "Choose how Constellation emphasizes graph distance and interaction."
+msgstr ""
+
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:191
+msgid "Choose reduced effects on devices that struggle with intensive visualizations."
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:160
+msgid "classic"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:53
+msgid "Classic"
+msgstr ""
+
+#: src/core/design/components/Display/Interactions/GraphOrganizer/GraphOrganizer.tsx:72
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "Clear"
 msgstr "Limpiar"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:164
+#: src/domains/identity/pages/Settings/Settings.tsx:199
 msgid "clear data"
 msgstr "borrar datos"
 
@@ -599,6 +701,7 @@ msgstr "Limpiar esta selección."
 msgid "Clear Workspace Data"
 msgstr "Borrar datos del espacio de trabajo"
 
+<<<<<<< HEAD
 #: src/domains/knowledge/pages/Idea/Connections.tsx:219
 msgid "Click the <0/> button to create a new connected note."
 msgstr "Haz clic en el botón <0/> para crear una nueva nota conectada."
@@ -627,11 +730,22 @@ msgid "Collapse All"
 msgstr "Contraer todo"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:87
+=======
+#: src/domains/identity/pages/Settings/Settings.tsx:219
+msgid "close account"
+msgstr "cerrar cuenta"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:251
+msgid "collaboration"
+msgstr "colaboración"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:97
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "color"
 msgstr "color"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:96
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:119
+#: src/domains/identity/pages/Settings/Settings.tsx:105
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:160
 msgid "Color Scheme"
 msgstr "Esquema de colores"
 
@@ -674,6 +788,7 @@ msgstr "Conectar"
 msgid "Connect the dots..."
 msgstr "Conecta los puntos..."
 
+<<<<<<< HEAD
 #: src/domains/knowledge/pages/Idea/Connections.tsx:341
 msgid "Connect this idea"
 msgstr "Conectar esta idea"
@@ -732,10 +847,30 @@ msgid "Copy Email"
 msgstr "Copiar correo electrónico"
 
 #: src/domains/admin/pages/Admin.tsx:130
+=======
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:358
+msgid "Consecutive failures:"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:157
+msgid "constellation"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:155
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:201
+msgid "Constellation visual mode"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:500
+msgid "Copied"
+msgstr ""
+
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 #: src/domains/identity/pages/Settings/views/ActivityNetworkCommunity.tsx:68
 msgid "Copy Referral Link"
 msgstr "Copiar enlace de referido"
 
+<<<<<<< HEAD
 #: src/domains/knowledge/pages/File/File.tsx:50
 msgid "Couldn't download file"
 msgstr "No se pudo descargar el archivo"
@@ -770,12 +905,67 @@ msgstr "Creado el"
 #: src/domains/identity/pages/Users/Users.tsx:587
 msgid "Created:"
 msgstr "Creado:"
+=======
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:500
+msgid "Copy secret"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:116
+msgid "Could not create API key"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:161
+msgid "Could not create webhook"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:193
+msgid "Could not delete webhook"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:229
+msgid "Could not load deliveries"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:85
+msgid "Could not load developer settings"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:213
+msgid "Could not queue test event"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:137
+msgid "Could not revoke API key"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:177
+msgid "Could not update webhook"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:265
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:402
+msgid "Create API key"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:438
+msgid "Create key"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:245
+msgid "Create scoped API keys and connect Noeko to your own automations."
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:228
+msgid "credentials"
+msgstr ""
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 
 #: src/domains/identity/pages/Settings/Profile.tsx:158
 #: src/domains/identity/pages/Settings/Profile.tsx:159
 msgid "Current Password"
 msgstr "Contraseña actual"
 
+<<<<<<< HEAD
 #: src/domains/admin/pages/Feedback/Updates.tsx:523
 #~ msgid "Currently we are working on integrating tasks with the rest of Noeko, as well as general user-experience updates. In the background, we're also laying the ground work for a big integration of your own sources into Noeko, so that you can deeply integrate outside sources of information into the application."
 #~ msgstr ""
@@ -786,10 +976,13 @@ msgid "Currently, displaying all {0} might be a bit laggy. We're working on this
 msgstr "Actualmente, mostrar los {0} puede ser un poco lento. Estamos trabajando en ello, pero mientras tanto, no dudes en mantener las notas ocultas por defecto y buscarlas para filtrar, ¡o mostralas y desliza!"
 
 #: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:103
+=======
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:112
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "Customize how Noeko looks and feels."
 msgstr "Personaliza la apariencia de Noeko."
 
-#: src/domains/identity/pages/Settings/Settings.tsx:167
+#: src/domains/identity/pages/Settings/Settings.tsx:202
 msgid "danger"
 msgstr "peligro"
 
@@ -798,7 +991,7 @@ msgstr "peligro"
 msgid "Danger Zone"
 msgstr "Zona de peligro"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:98
+#: src/domains/identity/pages/Settings/Settings.tsx:107
 msgid "dark"
 msgstr "oscuro"
 
@@ -806,19 +999,23 @@ msgstr "oscuro"
 msgid "Dark"
 msgstr "Oscuro"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:85
+#: src/domains/identity/pages/Settings/Settings.tsx:95
 msgid "dark mode"
 msgstr "modo oscuro"
 
+<<<<<<< HEAD
 #: src/domains/dashboard/pages/Dashboard/DashboardOld.tsx:222
 msgid "Dashboard view"
 msgstr "Vista del tablero"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:151
+=======
+#: src/domains/identity/pages/Settings/Settings.tsx:186
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "data in"
 msgstr "importar datos"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:157
+#: src/domains/identity/pages/Settings/Settings.tsx:192
 msgid "data out"
 msgstr "exportar datos"
 
@@ -828,9 +1025,10 @@ msgid "Deep Focus"
 msgstr "Enfoque profundo"
 
 #: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:30
-msgid "Default"
-msgstr "Predeterminado"
+#~ msgid "Default"
+#~ msgstr "Predeterminado"
 
+<<<<<<< HEAD
 #: src/domains/admin/pages/Feedback/Feedback.tsx:200
 #: src/domains/identity/pages/Users/Users.tsx:699
 #: src/domains/knowledge/pages/File/File.tsx:85
@@ -845,6 +1043,13 @@ msgid "Delete"
 msgstr "Eliminar"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:183
+=======
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:383
+msgid "Delete"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:218
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 #: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:94
 msgid "Delete Account"
 msgstr "Eliminar cuenta"
@@ -887,6 +1092,7 @@ msgstr "Eliminar datos"
 msgid "DELETE STUFF"
 msgstr "ELIMINAR DATOS"
 
+<<<<<<< HEAD
 #: src/domains/knowledge/pages/Tags/Tags.tsx:456
 #: src/domains/knowledge/pages/Tags/ViewTag.tsx:412
 #: src/domains/knowledge/pages/Tags/ViewTag.tsx:479
@@ -919,6 +1125,9 @@ msgid "Delete user"
 msgstr "Eliminar usuario"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:162
+=======
+#: src/domains/identity/pages/Settings/Settings.tsx:197
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "Delete Workspace"
 msgstr "Eliminar espacio de trabajo"
 
@@ -930,6 +1139,7 @@ msgstr "Eliminar tu cuenta es permanente. Todos los datos asociados se perderán
 msgid "Deleting your workspace data will remove all ideas, connections, and files, but keep your account intact. This action is irreversible."
 msgstr "Eliminar los datos de tu espacio de trabajo borrará todas las ideas, conexiones y archivos, pero mantendrá tu cuenta activa. Esta acción es irreversible."
 
+<<<<<<< HEAD
 #: src/domains/knowledge/pages/Tags/Tags.tsx:250
 #: src/domains/knowledge/pages/Tags/ViewTag.tsx:550
 msgid "Describe the meaning of your tag..."
@@ -949,13 +1159,29 @@ msgid "Description must be at least 5 characters"
 msgstr "La descripción debe tener al menos 5 caracteres"
 
 #: src/domains/constellation/pages/Constellation/ConstellationActions.tsx:95
+=======
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:375
+msgid "Deliveries"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:159
+msgid "depth"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:52
+msgid "Depth (default)"
+msgstr ""
+
+#: src/domains/constellation/pages/Constellation/ConstellationActions.tsx:142
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "Deselect All"
 msgstr "Deseleccionar todo"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:184
+#: src/domains/identity/pages/Settings/Settings.tsx:219
 msgid "destroy"
 msgstr "destruir"
 
+<<<<<<< HEAD
 #: src/domains/identity/pages/Users/Users.tsx:688
 msgid "Disable"
 msgstr "Deshabilitar"
@@ -979,6 +1205,18 @@ msgid "Done by"
 msgstr "Hecho por"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:157
+=======
+#: src/domains/identity/pages/Settings/Settings.tsx:225
+msgid "developer"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:74
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:242
+msgid "Developer & Automation"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:192
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "download"
 msgstr "descargar"
 
@@ -993,9 +1231,10 @@ msgid "Download your ideas and files"
 msgstr "Descarga tus ideas y archivos"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:90
-msgid "dracula"
-msgstr "dracula"
+#~ msgid "dracula"
+#~ msgstr "dracula"
 
+<<<<<<< HEAD
 #: src/domains/knowledge/pages/Idea/Connections.tsx:181
 msgid "Drag idea here to create a connection"
 msgstr "Arrastra la idea aquí para crear una conexión"
@@ -1026,15 +1265,26 @@ msgid "Edit Idea"
 msgstr "Editar idea"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:172
+=======
+#: src/domains/identity/pages/Settings/Settings.tsx:207
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 #: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:67
 msgid "Edit Profile"
 msgstr "Editar perfil"
 
+<<<<<<< HEAD
 #: src/domains/admin/pages/Feedback/Updates.tsx:310
 #~ msgid "Editor overhaul, additional updates"
 #~ msgstr ""
 
 #: src/domains/identity/pages/Settings/Settings.tsx:173
+=======
+#: src/domains/identity/pages/Settings/Settings.tsx:146
+msgid "effects"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:208
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "email"
 msgstr "correo electrónico"
 
@@ -1060,6 +1310,7 @@ msgstr "Correo electrónico"
 msgid "Email is required"
 msgstr "El correo electrónico es obligatorio"
 
+<<<<<<< HEAD
 #: src/Error.tsx:64
 msgid "Email Support"
 msgstr "Soporte por correo electrónico"
@@ -1078,6 +1329,17 @@ msgid "Enable user"
 msgstr ""
 
 #: src/domains/identity/pages/Settings/Settings.tsx:124
+=======
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:354
+msgid "Enable webhook"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:451
+msgid "Endpoint URL"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:133
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "english"
 msgstr "inglés"
 
@@ -1170,6 +1432,7 @@ msgstr ""
 #~ msgid "Español"
 #~ msgstr "Español"
 
+<<<<<<< HEAD
 #: src/domains/admin/pages/Feedback/Updates.tsx:226
 #~ msgid "Even more Spyglass updates"
 #~ msgstr ""
@@ -1203,6 +1466,27 @@ msgstr "Expandir todo"
 #: src/domains/knowledge/pages/Idea/Connections.tsx:211
 msgid "Explicit connections between ideas are only made by you, and they are persistent even if the content changes, unlike similar ideas. You can drag and drop ideas to this area, or click the associated buttons to make connections."
 msgstr "Las conexiones explícitas entre ideas solo las haces tú, y son persistentes incluso si el contenido cambia, a diferencia de las ideas similares. Puedes arrastrar y soltar ideas en esta área, o hacer clic en los botones asociados para realizar conexiones."
+=======
+#: src/domains/identity/pages/Settings/Settings.tsx:236
+msgid "events"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:459
+msgid "Events"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:214
+msgid "exit"
+msgstr "salir"
+
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:424
+msgid "Expiration (optional)"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:289
+msgid "Expires:"
+msgstr ""
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 
 #: src/core/design/components/Layout/TopBar.tsx:24
 #: src/domains/discovery/components/Search/SearchBar.tsx:11
@@ -1222,7 +1506,7 @@ msgstr "Exportar como Markdown"
 #~ msgid "Export or Copy ideas as Markdown or HTML."
 #~ msgstr ""
 
-#: src/domains/identity/pages/Settings/Settings.tsx:156
+#: src/domains/identity/pages/Settings/Settings.tsx:191
 #: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:86
 msgid "Export Stuff"
 msgstr "Exportar datos"
@@ -1388,7 +1672,7 @@ msgstr "Fugacidad. La cualidad de ser fugaz o transitorio."
 msgid "Follow your curiosity!"
 msgstr "¡Sigue tu curiosidad!"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:110
+#: src/domains/identity/pages/Settings/Settings.tsx:119
 msgid "font"
 msgstr "fuente"
 
@@ -1408,18 +1692,25 @@ msgstr "Error de formulario"
 #~ msgid "Français"
 #~ msgstr "Français"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:126
+#: src/domains/identity/pages/Settings/Settings.tsx:135
 msgid "french"
 msgstr "francés"
 
+<<<<<<< HEAD
 #: src/domains/constellation/pages/Constellation/ConstellationContext.tsx:119
 msgid "Friend"
 msgstr "Amigo"
+=======
+#: src/domains/constellation/pages/Constellation/ConstellationContext.tsx:122
+#~ msgid "Friend"
+#~ msgstr ""
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 
-#: src/domains/identity/pages/Settings/Settings.tsx:206
+#: src/domains/identity/pages/Settings/Settings.tsx:261
 msgid "friends"
 msgstr "amigos"
 
+<<<<<<< HEAD
 #: src/domains/constellation/pages/Constellation/ConstellationContext.tsx:113
 msgid "FRIENDS"
 msgstr "AMIGOS"
@@ -1491,11 +1782,42 @@ msgstr "Ocultar notas"
 #: src/domains/system/pages/Import/importers/TextFile.tsx:148
 msgid "Hide Preview"
 msgstr "Ocultar vista previa"
+=======
+#: src/domains/constellation/pages/Constellation/ConstellationContext.tsx:114
+#~ msgid "FRIENDS"
+#~ msgstr ""
 
-#: src/domains/identity/pages/Settings/Settings.tsx:72
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:48
+msgid "Full effects"
+msgstr ""
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
+
+#: src/domains/identity/pages/Settings/Settings.tsx:149
+msgid "GPU"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:158
+msgid "graph"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:145
+msgid "graphics"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:185
+msgid "Graphics"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:142
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:189
+msgid "Graphics quality"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:82
 msgid "History, sharing & community"
 msgstr "Historial, comunidad y compartir"
 
+<<<<<<< HEAD
 #: src/Error.tsx:36
 msgid "Hmm, something went wrong :/"
 msgstr ""
@@ -1578,10 +1900,22 @@ msgid "Import"
 msgstr "Importar"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:150
+=======
+#: src/domains/identity/pages/Settings/Settings.tsx:172
+msgid "hotkeys"
+msgstr "teclas de acceso rápido"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:131
+msgid "i18n"
+msgstr "i18n"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:185
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 #: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:79
 msgid "Import Ideas"
 msgstr "Importar ideas"
 
+<<<<<<< HEAD
 #: src/domains/system/pages/Import/importers/Directory.tsx:183
 msgid "Import initialized..."
 msgstr ""
@@ -1591,6 +1925,9 @@ msgid "Import successful!"
 msgstr ""
 
 #: src/domains/identity/pages/Settings/Settings.tsx:65
+=======
+#: src/domains/identity/pages/Settings/Settings.tsx:68
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "Import, export & tags"
 msgstr "Importación, exportación y etiquetas"
 
@@ -1639,6 +1976,7 @@ msgstr "Para eliminar tu cuenta, escribe \"{confirmationText}\""
 msgid "In order to delete your stuff, type \"{confirmationText}\""
 msgstr "Para eliminar tus datos, escribe \"{confirmationText}\""
 
+<<<<<<< HEAD
 #: src/domains/admin/pages/Feedback/Updates.tsx:520
 #~ msgid "In progress"
 #~ msgstr ""
@@ -1676,10 +2014,17 @@ msgid "Insights"
 msgstr "Perspectivas"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:138
+=======
+#: src/domains/identity/pages/Settings/Settings.tsx:237
+msgid "integrations"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:173
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "interactions"
 msgstr "interacciones"
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:144
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:217
 msgid "Interactions"
 msgstr "Interacciones"
 
@@ -1705,6 +2050,7 @@ msgstr "¡Hacia el gran interior!"
 msgid "Invalid email"
 msgstr "Correo electrónico inválido"
 
+<<<<<<< HEAD
 #: src/domains/identity/pages/Auth/Login.tsx:88
 #: src/domains/identity/pages/Auth/Register.tsx:148
 msgid "Invalid email or password"
@@ -1721,6 +2067,9 @@ msgid "Invitation sent successfully."
 msgstr "Invitación enviada con éxito."
 
 #: src/domains/identity/pages/Settings/Settings.tsx:206
+=======
+#: src/domains/identity/pages/Settings/Settings.tsx:261
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "invite"
 msgstr "invitar"
 
@@ -1745,6 +2094,7 @@ msgstr "Únete a las discusiones en Reddit"
 msgid "Join the Discord"
 msgstr "Únete al Discord"
 
+<<<<<<< HEAD
 #: src/domains/dashboard/pages/Dashboard/Mobile/Do.tsx:195
 #: src/domains/dashboard/pages/Dashboard/Mobile/Think.tsx:162
 msgid "Jump Back In"
@@ -1755,20 +2105,27 @@ msgid "JUMP BACK IN"
 msgstr "VUELVE A ENTRAR"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:136
+=======
+#: src/domains/identity/pages/Settings/Settings.tsx:171
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "keyboard"
 msgstr "teclado"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:133
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:147
+#: src/domains/identity/pages/Settings/Settings.tsx:168
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:220
 msgid "Keymap"
 msgstr "Mapa de teclado"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:145
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:252
+msgid "Keys act with your account permissions. Copy a key when it is created; its full secret is never shown again."
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:180
 msgid "labels"
 msgstr "etiquetas"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:120
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:135
+#: src/domains/identity/pages/Settings/Settings.tsx:129
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:176
 msgid "Language"
 msgstr "Idioma"
 
@@ -1796,6 +2153,7 @@ msgstr "Apellido"
 msgid "Last name is required"
 msgstr "El apellido es obligatorio"
 
+<<<<<<< HEAD
 #: src/domains/identity/pages/Auth/Register.tsx:85
 #: src/domains/identity/pages/Users/Users.tsx:185
 #: src/domains/identity/pages/Users/UsersOld.tsx:184
@@ -1812,10 +2170,17 @@ msgstr "Última actualización"
 #~ msgstr ""
 
 #: src/domains/identity/pages/Settings/Settings.tsx:179
+=======
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:288
+msgid "Last used:"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:214
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "leave"
 msgstr "abandonar"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:99
+#: src/domains/identity/pages/Settings/Settings.tsx:108
 msgid "light"
 msgstr "claro"
 
@@ -1823,10 +2188,11 @@ msgstr "claro"
 msgid "Light"
 msgstr "Claro"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:86
+#: src/domains/identity/pages/Settings/Settings.tsx:96
 msgid "light mode"
 msgstr "modo claro"
 
+<<<<<<< HEAD
 #: src/domains/discovery/pages/Spyglass/Spyglass/Records.tsx:220
 msgid "Loading more history..."
 msgstr "Cargando más historial..."
@@ -1852,6 +2218,9 @@ msgid "Loading..."
 msgstr "Cargando..."
 
 #: src/domains/identity/pages/Settings/Settings.tsx:127
+=======
+#: src/domains/identity/pages/Settings/Settings.tsx:136
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "locale"
 msgstr "región"
 
@@ -1859,6 +2228,7 @@ msgstr "región"
 msgid "Log out"
 msgstr "Cerrar sesión"
 
+<<<<<<< HEAD
 #: src/domains/identity/pages/Auth/Login.tsx:144
 msgid "Login"
 msgstr "Iniciar sesión"
@@ -1873,6 +2243,9 @@ msgid "Login to Noeko"
 msgstr "Iniciar sesión en Noeko"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:178
+=======
+#: src/domains/identity/pages/Settings/Settings.tsx:213
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "Logout"
 msgstr "Cerrar sesión"
 
@@ -1933,7 +2306,7 @@ msgstr "Gestionar archivos"
 msgid "Manage ideas you've shared with others"
 msgstr "Gestiona las ideas que has compartido"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:51
+#: src/domains/identity/pages/Settings/Settings.tsx:54
 msgid "Manage profile & credentials"
 msgstr "Gestiona tu perfil y credenciales"
 
@@ -1964,6 +2337,7 @@ msgstr "Gestiona tu perfil y configuración de autenticación."
 msgid "Management"
 msgstr "Gestión"
 
+<<<<<<< HEAD
 #: src/domains/admin/pages/Feedback/Feedback.tsx:190
 msgid "Mark Resolved"
 msgstr "Marcar como resuelto"
@@ -2043,6 +2417,29 @@ msgid "Name:"
 msgstr "Nombre:"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:197
+=======
+#: src/domains/identity/pages/Settings/Settings.tsx:186
+msgid "markdown"
+msgstr "markdown"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:186
+msgid "migrate"
+msgstr "migrar"
+
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:407
+msgid "My automation"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:208
+msgid "name"
+msgstr "nombre"
+
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:406
+msgid "Name"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:252
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "network"
 msgstr "red"
 
@@ -2071,6 +2468,7 @@ msgstr "La nueva contraseña es obligatoria"
 msgid "New password must be at least 8 characters"
 msgstr "La nueva contraseña debe tener al menos 8 caracteres"
 
+<<<<<<< HEAD
 #: src/domains/identity/pages/Users/Users.tsx:618
 #: src/domains/identity/pages/Users/Users.tsx:626
 msgid "No"
@@ -2148,6 +2546,18 @@ msgstr ""
 #: src/domains/knowledge/pages/File/File.tsx:187
 #: src/domains/knowledge/pages/Sources/Source.tsx:333
 msgid "No viewer available for this type of file :/"
+=======
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:272
+msgid "No API keys yet."
+msgstr ""
+
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:519
+msgid "No deliveries yet."
+msgstr ""
+
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:324
+msgid "No webhook subscriptions yet."
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgstr ""
 
 #: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:129
@@ -2186,12 +2596,12 @@ msgstr "Noeko"
 #~ msgstr "Actualizaciones de Noeko"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:89
-msgid "nord"
-msgstr "nord"
+#~ msgid "nord"
+#~ msgstr "nord"
 
 #: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:31
-msgid "Nord"
-msgstr "Nord"
+#~ msgid "Nord"
+#~ msgstr "Nord"
 
 #: src/domains/knowledge/pages/Tasks/Task.tsx:267
 msgid "Notes"
@@ -2221,10 +2631,11 @@ msgstr "¡Adelante!"
 msgid "or ask on"
 msgstr "o pregunta en"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:145
+#: src/domains/identity/pages/Settings/Settings.tsx:180
 msgid "organize"
 msgstr "organizar"
 
+<<<<<<< HEAD
 #: src/domains/admin/pages/Admin.tsx:115
 msgid "Other Stuff"
 msgstr ""
@@ -2251,6 +2662,9 @@ msgid "Owned by {0}"
 msgstr "Propiedad de {0}"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:173
+=======
+#: src/domains/identity/pages/Settings/Settings.tsx:208
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "password"
 msgstr "contraseña"
 
@@ -2295,19 +2709,25 @@ msgstr "Restablecimiento de contraseña exitoso"
 msgid "Passwords do not match"
 msgstr "Las contraseñas no coinciden"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:189
+#: src/domains/identity/pages/Settings/Settings.tsx:244
 msgid "past searches"
 msgstr "búsquedas anteriores"
 
+<<<<<<< HEAD
 #: src/domains/knowledge/pages/Idea/Idea.tsx:741
 #: src/domains/knowledge/pages/Sources/Source.tsx:438
 #: src/domains/knowledge/pages/Tasks/Task.tsx:538
 msgid "Pin"
 msgstr "Fijar"
+=======
+#: src/domains/identity/pages/Settings/Settings.tsx:144
+msgid "performance"
+msgstr ""
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 
 #: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:32
-msgid "Pink Lady"
-msgstr "Pink Lady"
+#~ msgid "Pink Lady"
+#~ msgstr "Pink Lady"
 
 #: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:44
 #: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:50
@@ -2362,18 +2782,19 @@ msgstr "Perfil"
 msgid "Profile updated successfully"
 msgstr "Perfil actualizado correctamente"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:206
+#: src/domains/identity/pages/Settings/Settings.tsx:261
 msgid "promo"
 msgstr "promoción"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:198
+#: src/domains/identity/pages/Settings/Settings.tsx:253
 msgid "public"
 msgstr "público"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:199
+#: src/domains/identity/pages/Settings/Settings.tsx:254
 msgid "published"
 msgstr "publicado"
 
+<<<<<<< HEAD
 #: src/domains/identity/pages/Users/Users.tsx:470
 #: src/domains/identity/pages/Users/Users.tsx:652
 msgid "Quests"
@@ -2470,13 +2891,37 @@ msgid "Remove"
 msgstr "Eliminar"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:184
+=======
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:310
+msgid "Receive signed notifications when your ideas change or finish processing."
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:244
+msgid "recent"
+msgstr "reciente"
+
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:49
+msgid "Reduced effects"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:148
+msgid "reduced motion"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:260
+msgid "Referral Link"
+msgstr "Enlace de referido"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:219
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "remove me"
 msgstr "eliminarme"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:165
+#: src/domains/identity/pages/Settings/Settings.tsx:200
 msgid "remove stuff"
 msgstr "eliminar contenido"
 
+<<<<<<< HEAD
 #: src/domains/admin/pages/Feedback/Updates.tsx:265
 #~ msgid "Removing redundant information and making it easy to get utility."
 #~ msgstr ""
@@ -2495,6 +2940,9 @@ msgid "Reset Spyglass"
 msgstr "Restablecer Spyglass"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:166
+=======
+#: src/domains/identity/pages/Settings/Settings.tsx:201
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "reset workspace"
 msgstr "restablecer espacio de trabajo"
 
@@ -2511,6 +2959,7 @@ msgstr "Revisar retroalimentación"
 msgid "Review your search and exploration history"
 msgstr "Revisa tu historial de búsqueda y exploración"
 
+<<<<<<< HEAD
 #: src/domains/admin/pages/Feedback/Updates.tsx:516
 #~ msgid "Roadmap"
 #~ msgstr ""
@@ -2524,6 +2973,13 @@ msgid "Roles:"
 msgstr "Roles:"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:113
+=======
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:299
+msgid "Revoke"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:122
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "sans"
 msgstr "sans"
 
@@ -2536,6 +2992,7 @@ msgstr "Sans-Serif"
 msgid "Save"
 msgstr "Guardar"
 
+<<<<<<< HEAD
 #: src/domains/knowledge/pages/Tags/Tags.tsx:387
 msgid "Save Tag"
 msgstr ""
@@ -2578,25 +3035,45 @@ msgid "See latest updates"
 msgstr "Ver últimas actualizaciones"
 
 #: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:112
+=======
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:487
+msgid "Save your secret now"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:111
+msgid "scheme"
+msgstr "esquema"
+
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:413
+msgid "Scopes"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:359
+msgid "Search settings..."
+msgstr "Buscar ajustes..."
+
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:121
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "Select a theme for the application."
 msgstr "Selecciona un tema para la aplicación."
 
-#: src/domains/constellation/pages/Constellation/ConstellationActions.tsx:86
+#: src/domains/constellation/pages/Constellation/ConstellationActions.tsx:133
 msgid "Select All"
 msgstr "Seleccionar todo"
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:128
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:169
 msgid "Select the primary font for reading."
 msgstr "Selecciona la fuente principal para lectura."
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:136
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:177
 msgid "Select your preferred language."
 msgstr "Selecciona tu idioma de preferencia."
 
-#: src/core/design/components/Display/Interactions/GraphOrganizer/GraphOrganizer.tsx:45
+#: src/core/design/components/Display/Interactions/GraphOrganizer/GraphOrganizer.tsx:60
 msgid "SELECTED"
 msgstr ""
 
+<<<<<<< HEAD
 #: src/domains/identity/pages/Users/UsersOld.tsx:497
 msgid "Send invite!"
 msgstr "¡Enviar invitación!"
@@ -2629,6 +3106,13 @@ msgid "Sent {0}"
 msgstr ""
 
 #: src/domains/identity/pages/Settings/Settings.tsx:112
+=======
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:367
+msgid "Send test"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:121
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "serif"
 msgstr "serif"
 
@@ -2636,16 +3120,20 @@ msgstr "serif"
 msgid "Serif"
 msgstr "Serif"
 
+<<<<<<< HEAD
 #: src/domains/identity/pages/Auth/ResetPassword.tsx:132
 msgid "Set New Password"
 msgstr "Establecer nueva contraseña"
 
 #: src/domains/dashboard/pages/Dashboard/DashboardOld.tsx:261
 #: src/domains/identity/pages/Settings/Settings.tsx:279
+=======
+#: src/domains/identity/pages/Settings/Settings.tsx:334
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "Settings"
 msgstr "Ajustes"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:206
+#: src/domains/identity/pages/Settings/Settings.tsx:261
 msgid "share noeko"
 msgstr "compartir noeko"
 
@@ -2653,6 +3141,7 @@ msgstr "compartir noeko"
 msgid "Share Noeko with friends"
 msgstr "Comparte Noeko con amigos"
 
+<<<<<<< HEAD
 #: src/domains/dashboard/pages/Dashboard/Mobile/Mobile.tsx:76
 msgid "Shared"
 msgstr ""
@@ -2672,10 +3161,14 @@ msgid "Shared ideas"
 msgstr ""
 
 #: src/domains/identity/pages/Settings/Settings.tsx:194
+=======
+#: src/domains/identity/pages/Settings/Settings.tsx:249
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 #: src/domains/identity/pages/Settings/views/ActivityNetworkCommunity.tsx:55
 msgid "Shared Ideas"
 msgstr "Ideas compartidas"
 
+<<<<<<< HEAD
 #: src/domains/dashboard/pages/Dashboard/Mobile/Mobile.tsx:252
 #: src/domains/knowledge/pages/Sharing/Sharing.tsx:199
 #: src/domains/knowledge/pages/Tasks/Task.tsx:306
@@ -2716,6 +3209,13 @@ msgstr "Mostrar vista previa"
 #~ msgstr ""
 
 #: src/domains/identity/pages/Settings/Settings.tsx:179
+=======
+#: src/domains/identity/pages/Settings/Settings.tsx:170
+msgid "shortcuts"
+msgstr "atajos"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:214
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "sign out"
 msgstr "cerrar sesión"
 
@@ -2740,6 +3240,7 @@ msgstr "Cerrar sesión en este dispositivo"
 msgid "Something went wrong"
 msgstr "Algo salió mal"
 
+<<<<<<< HEAD
 #: src/domains/knowledge/pages/Tags/ViewTag.tsx:129
 #: src/domains/rabbitholes/pages/Rabbitholes/Rabbithole.tsx:173
 msgid "Something went wrong adding the tag"
@@ -2809,6 +3310,9 @@ msgid "Sources is currently under active development and some features might not
 msgstr "Sources está actualmente bajo desarrollo activo y algunas características podrían no funcionar como se espera. Buscamos comentarios mientras aprendemos y crecemos :)"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:125
+=======
+#: src/domains/identity/pages/Settings/Settings.tsx:134
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "spanish"
 msgstr "español"
 
@@ -2822,6 +3326,7 @@ msgstr "Genera una nueva idea."
 msgid "Spyglass"
 msgstr ""
 
+<<<<<<< HEAD
 #: src/domains/admin/pages/Feedback/Updates.tsx:185
 #~ msgid "Spyglass Follow-up questions"
 #~ msgstr ""
@@ -2836,10 +3341,14 @@ msgstr ""
 
 #: src/domains/discovery/pages/Spyglass/Spyglass/Records.tsx:132
 #: src/domains/identity/pages/Settings/Settings.tsx:188
+=======
+#: src/domains/identity/pages/Settings/Settings.tsx:243
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 #: src/domains/identity/pages/Settings/views/ActivityNetworkCommunity.tsx:48
 msgid "Spyglass History"
 msgstr "Historial de Spyglass"
 
+<<<<<<< HEAD
 #: src/domains/discovery/pages/Spyglass/Spyglass.tsx:179
 msgid "Spyglass is currently under active development and some features might not always work as expected. We're looking for feedback as we learn and grow :)"
 msgstr "Spyglass está actualmente bajo desarrollo activo y algunas características podrían no siempre funcionar como se espera. Buscamos comentarios mientras aprendemos y crecemos :)"
@@ -2882,6 +3391,16 @@ msgid "Submit query"
 msgstr "Enviar consulta"
 
 #: src/domains/admin/pages/Admin.tsx:40
+=======
+#: src/domains/identity/pages/Settings/Settings.tsx:161
+msgid "static"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:54
+msgid "Static"
+msgstr ""
+
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 #: src/domains/identity/pages/Settings/Profile.tsx:74
 #: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:32
 #: src/domains/identity/pages/Users/Users.tsx:142
@@ -2933,10 +3452,11 @@ msgstr "¡Invoca el conocimiento!"
 msgid "Synchronize Graphs"
 msgstr "Sincronizar grafos"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:101
+#: src/domains/identity/pages/Settings/Settings.tsx:110
 msgid "system"
 msgstr "sistema"
 
+<<<<<<< HEAD
 #: src/domains/knowledge/pages/Tags/ViewTag.tsx:232
 msgid "Tag deleted successfully"
 msgstr "Etiqueta eliminada con éxito"
@@ -2964,11 +3484,15 @@ msgstr "Etiqueta actualizada con éxito"
 #~ msgstr ""
 
 #: src/domains/identity/pages/Settings/Settings.tsx:144
+=======
+#: src/domains/identity/pages/Settings/Settings.tsx:179
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 #: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:72
 #: src/domains/rabbitholes/pages/Rabbitholes/Rabbithole.tsx:677
 msgid "Tags"
 msgstr "Etiquetas"
 
+<<<<<<< HEAD
 #: src/domains/admin/pages/Feedback/Updates.tsx:418
 #~ msgid "Tags will now appear in the graph"
 #~ msgstr ""
@@ -3079,17 +3603,34 @@ msgstr "Sus roles son"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:83
 #: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:111
+=======
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:207
+msgid "Test event queued"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:120
+msgid "text"
+msgstr "texto"
+
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:394
+msgid "The machine-readable OpenAPI reference is available at"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:93
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:120
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "Theme"
 msgstr "Tema"
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:107
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:116
 msgid "Theme & Styling"
 msgstr "Tema y estilo"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:58
+#: src/domains/identity/pages/Settings/Settings.tsx:61
 msgid "Theme, layout & keymap"
 msgstr "Tema, diseño y teclado"
 
+<<<<<<< HEAD
 #. placeholder {0}: summaryDetails.numberOfUsers
 #. placeholder {1}: summaryDetails.mostRecentUser?.email
 #. placeholder {2}: summaryDetails.mostIdeas?.email
@@ -3105,6 +3646,10 @@ msgstr "No hay elementos en este rabbithole."
 #. placeholder {0}: error?.response?.data?.message || error?.message || i18n._(t`Unknown error`)
 #: src/domains/knowledge/pages/Tasks/Task.tsx:468
 msgid "There was an error deleting the task: {0}"
+=======
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:213
+msgid "These preferences are stored only on this device."
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgstr ""
 
 #: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:115
@@ -3115,6 +3660,7 @@ msgstr "Esta acción no se puede deshacer y se eliminarán todos los datos asoci
 msgid "This action cannot be undone, and all of your data will be deleted, <0>except for your account.</0>"
 msgstr "Esta acción no se puede deshacer y se borrarán todos tus datos, <0>excepto tu cuenta.</0>"
 
+<<<<<<< HEAD
 #: src/domains/knowledge/pages/Idea/Idea.tsx:225
 #: src/domains/knowledge/pages/Sources/Source.tsx:196
 #: src/domains/knowledge/pages/Tasks/Task.tsx:484
@@ -3175,6 +3721,21 @@ msgid "Try Again"
 msgstr "Intentar de nuevo"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:114
+=======
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:491
+msgid "This secret will not be shown again."
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:227
+msgid "token"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:132
+msgid "translation"
+msgstr "traducción"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:123
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "typography"
 msgstr "tipografía"
 
@@ -3271,7 +3832,7 @@ msgstr "Actualizar"
 msgid "Update Password"
 msgstr "Actualizar contraseña"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:173
+#: src/domains/identity/pages/Settings/Settings.tsx:208
 msgid "update user"
 msgstr "actualizar usuario"
 
@@ -3279,6 +3840,7 @@ msgstr "actualizar usuario"
 msgid "Update your name, email, and password"
 msgstr "Actualiza tu nombre, correo y contraseña"
 
+<<<<<<< HEAD
 #: src/domains/dashboard/pages/Dashboard/Dashboard.tsx:384
 #: src/domains/dashboard/pages/Dashboard/Mobile/Think.tsx:132
 msgid "Updated"
@@ -3377,6 +3939,13 @@ msgid "VIEW ALL"
 msgstr "VER TODO"
 
 #: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:148
+=======
+#: src/domains/identity/pages/Settings/Settings.tsx:186
+msgid "upload"
+msgstr "subir"
+
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:221
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 msgid "View and customize keyboard shortcuts"
 msgstr "Ver y personalizar atajos de teclado"
 
@@ -3405,6 +3974,7 @@ msgstr "Ver idea relacionada"
 msgid "View your history and connect with the community."
 msgstr "Mira tu historial y conecta con la comunidad."
 
+<<<<<<< HEAD
 #: src/domains/dashboard/pages/Dashboard/Dashboard.tsx:374
 #: src/domains/dashboard/pages/Dashboard/Mobile/Think.tsx:122
 msgid "Viewed"
@@ -3461,6 +4031,13 @@ msgstr ""
 #~ msgid "What do you think?"
 #~ msgstr ""
 
+=======
+#: src/domains/identity/pages/Settings/Settings.tsx:233
+#: src/domains/identity/pages/Settings/views/DeveloperAutomation.tsx:307
+msgid "Webhooks"
+msgstr ""
+
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 #: src/core/design/components/Layout/TopBar.tsx:34
 #: src/domains/discovery/components/Search/SearchBar.tsx:21
 msgid "What if...?"
@@ -3475,7 +4052,7 @@ msgstr ""
 msgid "Where to next?"
 msgstr "¿A dónde ahora?"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:64
+#: src/domains/identity/pages/Settings/Settings.tsx:67
 #: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:62
 msgid "Workspace Data"
 msgstr "Datos del espacio de trabajo"

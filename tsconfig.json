@@ -23,9 +23,20 @@
       "@infrastructure": ["./src/infrastructure"],
       "@infrastructure/*": ["./src/infrastructure/*"],
       "@domains": ["./src/domains"],
-      "@domains/*": ["./src/domains/*"],
+      "@domains/*": ["./src/domains/*"]
     }
   },
-  "include": ["src", "app", "vitest.d.ts", "src/locales/lingui.d.ts"],
+  "include": [
+    "src",
+    "app",
+    "e2e",
+    "benchmarks",
+    "integration",
+    "scripts/e2e",
+    "scripts/spyglass-live.ts",
+    "playwright.config.ts",
+    "vitest.d.ts",
+    "src/locales/lingui.d.ts"
+  ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

@@ -95,6 +95,8 @@ const tablesToTruncate = [
   "shared_with",
   "source",
   "spyglass_record",
+  "spyglass_run_event",
+  "spyglass_run",
   "user_token",
 ];
 

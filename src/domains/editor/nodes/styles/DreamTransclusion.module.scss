@@ -1,0 +1,102 @@
+.transclusion {
+  width: min(100%, 760px);
+  margin: var(--mantine-spacing-sm) auto;
+  overflow: hidden;
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-lg);
+  background: var(--mantine-color-body);
+  box-shadow: var(--mantine-shadow-xs);
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+
+  &[data-selected="true"] {
+    border-color: var(--mantine-primary-color-filled);
+    box-shadow: 0 0 0 2px var(--mantine-primary-color-light);
+  }
+
+  &[data-view-mode="minimal"] {
+    .header {
+      min-height: 44px;
+    }
+  }
+
+  &[data-type="idea"] .icon {
+    color: var(--mantine-color-yellow-6);
+  }
+
+  &[data-type="task"] .icon {
+    color: var(--mantine-color-green-6);
+  }
+
+  &[data-type="source"] .icon {
+    color: var(--mantine-color-blue-6);
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+  min-height: 52px;
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+}
+
+.icon {
+  display: grid;
+  flex: 0 0 28px;
+  place-items: center;
+}
+
+.heading {
+  min-width: 0;
+  flex: 1;
+}
+
+.title {
+  display: block;
+  overflow: hidden;
+  color: var(--mantine-color-text);
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
+  line-height: 1.3;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &:hover {
+    color: var(--mantine-primary-color-filled);
+  }
+}
+
+.actions {
+  flex: 0 0 auto;
+}
+
+.preview {
+  height: 220px;
+  overflow-y: auto;
+  border-top: 1px solid var(--mantine-color-default-border);
+  padding: var(--mantine-spacing-md);
+  background: var(--mantine-color-default-hover);
+}
+
+.previewHtml {
+  color: var(--mantine-color-text);
+  font-size: var(--mantine-font-size-sm);
+
+  > :first-child {
+    margin-top: 0;
+  }
+
+  > :last-child {
+    margin-bottom: 0;
+  }
+}
+
+.error {
+  border: 1px solid var(--mantine-color-red-6);
+  border-radius: var(--mantine-radius-md);
+  padding: var(--mantine-spacing-sm);
+  color: var(--mantine-color-red-6);
+}

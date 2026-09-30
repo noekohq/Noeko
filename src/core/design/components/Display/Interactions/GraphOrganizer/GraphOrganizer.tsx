@@ -1,18 +1,29 @@
-import { ActionIcon, Box, Button, Group, Stack, Text } from "@mantine/core";
-import { IExcerptNode, IIdeaNode, INode, ISourceNode, ITaskNode } from "@/declarations/graph";
+import { Button, Group, Stack, Text } from "@mantine/core";
+import {
+  IExcerptNode,
+  IGraphSummaryNode,
+  IIdeaNode,
+  INode,
+  IRabbitholeNode,
+  ISourceNode,
+  ITagNode,
+  ITaskNode,
+} from "@/declarations/graph";
 import styles from "./GraphOrganizer.module.scss";
 import { getNodeOrganizationType } from "@infrastructure/graph/utils";
 import RabbitholeButton from "@domains/rabbitholes/components/Rabbitholes/RabbitholeButton";
-import CollapseButton from "@core/design/components/Interactions/CollapseButton";
-import { RabbitholeDropzone } from "@domains/rabbitholes/components/Rabbitholes/RabbitholeDropzone";
-import TagButton from "@domains/knowledge/components/Tags/TagButton";
-import ConnectableThing from "../Connections/ConnectableThing";
 import { useGraph } from "@domains/constellation/contexts/GraphContext";
 import { SelectionIcon } from "@phosphor-icons/react";
 import { getThingPropsFromConnectable } from "@core/design/components/Paper/Things/thingUtils";
 import PaperThing from "@core/design/components/Paper/Things/PaperThing";
 import PaperTag from "@core/design/components/Paper/Tags/PaperTag";
 import { Trans } from "@lingui/react/macro";
+import {
+  getNodeDescription,
+  getNodeLink,
+  isGraphSummaryNode,
+  NodeIcon,
+} from "@infrastructure/graph/utils";
 
 interface IGraphOrganizerProps {
   nodes: INode[];
@@ -20,19 +31,23 @@ interface IGraphOrganizerProps {
 
 export function GraphOrganizer({ nodes }: IGraphOrganizerProps) {
   const {
-    focused: { get: focused, set: setFocused },
-    selected: { get: selection, clear: clearSelection, add: addToSelection, empty: selectionEmpty },
+    focused: { set: setFocused },
+    selected: { get: selection, clear: clearSelection, empty: selectionEmpty },
   } = useGraph();
 
   const selectedNodes = nodes.filter((node) => {
     return selection.has(node.id.toString());
   });
 
-  const rabbitholes = selectedNodes.filter((node) => node.type === "rabbithole");
-  const tags = selectedNodes.filter((node) => node.type === "tag");
+  const rabbitholes = selectedNodes.filter(
+    (node): node is IRabbitholeNode | IGraphSummaryNode => node.type === "rabbithole"
+  );
+  const tags = selectedNodes.filter(
+    (node): node is ITagNode | IGraphSummaryNode => node.type === "tag"
+  );
   const connectables = selectedNodes.filter(
     (node) => getNodeOrganizationType(node) === "connectable"
-  ) as (IIdeaNode | ISourceNode | ITaskNode | IExcerptNode)[];
+  );
 
   return (
     <div className={styles.organizer}>
@@ -59,6 +74,20 @@ export function GraphOrganizer({ nodes }: IGraphOrganizerProps) {
           </Group>
         )}
         {rabbitholes.map((rabbithole) => {
+          if (isGraphSummaryNode(rabbithole)) {
+            return (
+              <PaperThing
+                key={rabbithole.id.toString()}
+                id={rabbithole.id.toString()}
+                title={rabbithole.label}
+                detail={rabbithole.description || ""}
+                icon={NodeIcon(rabbithole)}
+                link={getNodeLink(rabbithole)}
+                preventClickDefault
+                onClick={() => setFocused(rabbithole.id.toString())}
+              />
+            );
+          }
           return (
             <RabbitholeButton
               key={rabbithole.id.toString()}
@@ -71,6 +100,20 @@ export function GraphOrganizer({ nodes }: IGraphOrganizerProps) {
         })}
         <Group wrap="wrap" gap="xs">
           {tags.map((tag) => {
+            if (isGraphSummaryNode(tag)) {
+              return (
+                <PaperThing
+                  key={tag.id.toString()}
+                  id={tag.id.toString()}
+                  title={tag.label}
+                  detail={tag.description || ""}
+                  icon={NodeIcon(tag)}
+                  link={getNodeLink(tag)}
+                  preventClickDefault
+                  onClick={() => setFocused(tag.id.toString())}
+                />
+              );
+            }
             return (
               <PaperTag
                 key={tag.id.toString()}
@@ -84,7 +127,27 @@ export function GraphOrganizer({ nodes }: IGraphOrganizerProps) {
           })}
         </Group>
         {connectables.map((connectable) => {
-          const props = getThingPropsFromConnectable(connectable, {}, true);
+          if (isGraphSummaryNode(connectable)) {
+            return (
+              <PaperThing
+                key={connectable.id.toString()}
+                id={connectable.id.toString()}
+                title={connectable.label}
+                detail={getNodeDescription(connectable) || ""}
+                icon={NodeIcon(connectable)}
+                link={getNodeLink(connectable)}
+                preventClickDefault
+                onClick={(node) => {
+                  setFocused(node);
+                }}
+              />
+            );
+          }
+          const props = getThingPropsFromConnectable(
+            connectable as IIdeaNode | ISourceNode | ITaskNode | IExcerptNode,
+            {},
+            true
+          );
           return (
             <PaperThing
               key={connectable.id.toString()}

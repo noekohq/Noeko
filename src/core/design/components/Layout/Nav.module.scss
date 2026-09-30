@@ -140,6 +140,66 @@
     border-top-right-radius: 0;
     border-top: none;
   }
+
+  &.hasRabbitholeAction {
+    z-index: 2;
+
+    @include tablet {
+      width: min(500px, 100%);
+    }
+  }
+}
+
+.rabbitholeAction {
+  --rabbithole-underlay-exposed-height: 2.125rem;
+  box-sizing: border-box;
+  width: min(500px, 100%);
+  min-height: calc(var(--navbar-height) + var(--rabbithole-underlay-exposed-height));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--mantine-spacing-xs);
+  border: 1px solid var(--theme-accent, var(--mantine-primary-color-5));
+  border-radius: 2rem 2rem var(--mantine-radius-xl) var(--mantine-radius-xl);
+  background: var(--mantine-primary-color-filled);
+  color: white;
+  font: inherit;
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: calc(var(--navbar-height) * -1);
+  padding: 0 var(--mantine-spacing-lg) var(--navbar-height);
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 -2px 8px
+    color-mix(in srgb, var(--theme-accent, var(--mantine-primary-color-7)) 24%, transparent);
+  touch-action: manipulation;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    background: color-mix(
+      in srgb,
+      var(--mantine-primary-color-filled) 86%,
+      var(--mantine-color-white)
+    );
+  }
+
+  @media (pointer: coarse) {
+    &::after {
+      content: "";
+      position: absolute;
+      inset: -8px -8px 0;
+    }
+  }
+
+  @include desktop {
+    border-bottom-right-radius: var(--mantine-radius-lg);
+    border-bottom-left-radius: var(--mantine-radius-lg);
+  }
 }
 
 %button-base {

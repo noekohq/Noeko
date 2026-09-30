@@ -1,17 +1,36 @@
-import { ActionIcon, Badge, Group, HoverCard, Loader, Stack, Text, Title } from "@mantine/core";
+import {
+  ActionIcon,
+  Alert,
+  Badge,
+  Button,
+  Center,
+  Group,
+  HoverCard,
+  Loader,
+  Stack,
+  Text,
+  Title,
+  Tooltip,
+} from "@mantine/core";
 import GlimpseModeDisplay from "@domains/discovery/components/Spyglass/GlimpseModeDisplay";
 import styles from "./Spyglass.module.scss";
 import { useInteraction } from "@/contexts/InteractionContext";
-import { useLayout } from "@/contexts/LayoutContext";
 import useRabbithole from "@domains/rabbitholes/hooks/useRabbithole";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSpyglassService } from "@domains/discovery/hooks/useSpyglassService";
-import { Link, useSearchParams } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import PageWrapper from "@core/design/layout/PageWrapper";
 import TopBar from "@core/design/components/Layout/TopBar";
 import LeftSidebar from "@core/design/components/Layout/Left";
-import { ClockCounterClockwiseIcon, MegaphoneIcon } from "@phosphor-icons/react";
-import SpyglassContext from "./Spyglass/SpyglassContext";
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  CaretDownIcon,
+  CaretUpIcon,
+  ClockCounterClockwiseIcon,
+  MegaphoneIcon,
+  XIcon,
+} from "@phosphor-icons/react";
 import Content from "@core/design/components/Layout/Content";
 import Textbox from "./Textbox";
 import CountUp from "@core/design/components/Animations/Countup";
@@ -24,9 +43,33 @@ import { useSearch } from "@domains/discovery/contexts/SearchContext";
 import GlimpseNavigation from "@domains/discovery/components/Spyglass/GlimpseNavigation";
 import DeepFocusNavigation from "@domains/discovery/components/Spyglass/DeepFocusNavigation";
 import ScopeDisplay from "@domains/discovery/components/Search/ScopeBuilder/ScopeDisplay";
+<<<<<<< HEAD
 import { useLingui } from "@lingui/react";
 import { t } from "@lingui/core/macro";
 import { Trans, Plural } from "@lingui/react/macro";
+=======
+import { api } from "@infrastructure/api/client";
+import { formatDateTime } from "@core/utils/formatting";
+import type { ISpyglassLightHistoryResponse } from "../../../../../app/database/models/spyglass_record";
+import { useWorkflowSelection } from "@core/interactions";
+
+type SpyglassActivity = ISpyglassLightHistoryResponse["history"][number];
+
+const activityStatusColor = (activity: SpyglassActivity) => {
+  if (!activity.status || activity.status === "completed") return "green";
+  if (activity.status === "failed") return "red";
+  if (activity.status === "cancelled") return "gray";
+  return "yellow";
+};
+
+const activityStatusLabel = (activity: SpyglassActivity) => {
+  if (!activity.status || activity.status === "completed") return "Complete";
+  if (activity.status === "queued") return "Queued";
+  if (activity.status === "running") return "Running";
+  if (activity.status === "cancelled") return "Cancelled";
+  return "Failed";
+};
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
 
 export default function Spyglass() {
   const { i18n } = useLingui();
@@ -35,19 +78,14 @@ export default function Spyglass() {
       feedback: { openFeedbackModal },
     },
   } = useInteraction();
-  const {
-    elements: {
-      leftSidebar: {
-        mode: { set: setLeftSidebar },
-      },
-    },
-  } = useLayout();
-
   const { isDownRabbithole, currentRabbithole } = useRabbithole();
 
   const {
     global: {
       scope: { get: scope, set: setScope, has: hasScope },
+      scopeData: {
+        rabbithole: { set: setScopeRabbithole },
+      },
     },
   } = useSearch();
 
@@ -55,9 +93,21 @@ export default function Spyglass() {
   const [deepAnalysis, setDeepAnalysis] = useState(false);
 
   const [currentQuery, setCurrentQuery] = useState("");
+  const [recentActivity, setRecentActivity] = useState<SpyglassActivity[]>([]);
+  const [activityExpanded, setActivityExpanded] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const workflowSelection = useWorkflowSelection();
+  const requestedRunId = searchParams.get("run");
+  const suppressRunResumeRef = useRef(false);
+  const hydratedRabbitholeParamRef = useRef<string | null>(null);
+  const hydratedSelectionParamRef = useRef<string | null>(null);
 
   const {
     search,
+    resume,
+    cancel,
+    runId,
     reset,
     error,
     initialized,
@@ -73,7 +123,15 @@ export default function Spyglass() {
     resultsMap,
     status,
     uninitialize,
-  } = useSpyglassService();
+  } = useSpyglassService({
+    onRunCreated: (createdRunId) => {
+      setSearchParams({ run: createdRunId });
+    },
+    onRunLoaded: (run) => {
+      setCurrentQuery(run.query);
+      setDeepAnalysis(run.profile !== "glimpse");
+    },
+  });
 
   const handleSubmit = () => {
     if (!query) return;
@@ -82,14 +140,21 @@ export default function Spyglass() {
       {
         query,
         deepAnalysis,
-        rabbithole: currentRabbithole
-          ? currentRabbithole.id.toString()
-          : scope.rabbithole || undefined,
+        rabbithole: scope.rabbithole || currentRabbithole?.id.toString() || undefined,
+        scope: scope.scope,
         tags: scope.tags,
         date: scope.date,
       },
       true
     );
+  };
+
+  const clearSelectionScope = () => {
+    setScope({ ...scope, scope: undefined });
+    hydratedSelectionParamRef.current = null;
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete("selection");
+    setSearchParams(nextParams, { replace: true });
   };
 
   useEffect(() => {
@@ -98,21 +163,133 @@ export default function Spyglass() {
     }
   }, [complete]);
 
-  const [searchParams] = useSearchParams();
   useEffect(() => {
+    if (!requestedRunId) {
+      suppressRunResumeRef.current = false;
+    }
+    if (requestedRunId && requestedRunId !== runId) {
+      if (!suppressRunResumeRef.current) {
+        void resume(requestedRunId);
+      }
+      return;
+    }
     if (searchParams.get("q")) {
       const q = searchParams.get("q") || "";
       const deep = searchParams.get("deep") === "true";
       setQuery(q);
       setDeepAnalysis(deep);
     }
-  }, [searchParams]);
+    const scopedRabbithole = searchParams.get("rabbithole");
+    if (!scopedRabbithole) {
+      hydratedRabbitholeParamRef.current = null;
+    } else if (hydratedRabbitholeParamRef.current !== scopedRabbithole) {
+      hydratedRabbitholeParamRef.current = scopedRabbithole;
+      setScope({ ...scope, rabbithole: scopedRabbithole });
+      const scopedRabbitholeName = searchParams.get("rabbitholeName");
+      if (scopedRabbitholeName) {
+        setScopeRabbithole({ id: scopedRabbithole, name: scopedRabbitholeName });
+      }
+    }
+
+    const selectionToken = searchParams.get("selection");
+    if (!selectionToken) {
+      hydratedSelectionParamRef.current = null;
+    } else if (
+      hydratedSelectionParamRef.current !== selectionToken &&
+      workflowSelection.handoff?.updatedAt.toString() === selectionToken
+    ) {
+      hydratedSelectionParamRef.current = selectionToken;
+      setScope({
+        ...scope,
+        scope: workflowSelection.handoff.items.map((item) => item.id),
+      });
+    }
+  }, [
+    requestedRunId,
+    resume,
+    runId,
+    searchParams,
+    scope,
+    setScope,
+    setScopeRabbithole,
+    workflowSelection.handoff,
+  ]);
+
+  useEffect(() => {
+    if (initialized) return;
+    let mounted = true;
+
+    const loadActivity = async () => {
+      try {
+        const response = await api.get<{
+          data: ISpyglassLightHistoryResponse;
+        }>("/search/spyglass/history/light?page=1&pageSize=50");
+        const activity = [...response.data.data.history].sort((a, b) => {
+          const aActive = a.status === "queued" || a.status === "running";
+          const bActive = b.status === "queued" || b.status === "running";
+          if (aActive !== bActive) return aActive ? -1 : 1;
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
+        if (mounted) setRecentActivity(activity);
+      } catch (loadError) {
+        console.error("Failed to load Spyglass activity:", loadError);
+      }
+    };
+
+    void loadActivity();
+    const refresh = window.setInterval(() => void loadActivity(), 2_000);
+    return () => {
+      mounted = false;
+      window.clearInterval(refresh);
+    };
+  }, [initialized]);
 
   const showLoadingState = initialized && loading && !overview && !glimpseResult;
 
   // Show analysis state for Deep Focus when we have sources but are still analyzing
   const showDeepFocusAnalysis =
     initialized && loading && deepAnalysis && results.length > 0 && !overview;
+
+  const startNewQuery = () => {
+    suppressRunResumeRef.current = true;
+    setSearchParams({}, { replace: true });
+    reset();
+    uninitialize();
+    setQuery("");
+    setCurrentQuery("");
+  };
+
+  const openActivity = (activity: SpyglassActivity) => {
+    const id = activity.id.toString();
+    if (id.startsWith("spyglass_run:")) {
+      suppressRunResumeRef.current = false;
+      setSearchParams({ run: id });
+    } else {
+      navigate(`/spyglass/records/${id}`);
+    }
+  };
+
+  const cancelActivity = async (activity: SpyglassActivity) => {
+    const id = activity.id.toString();
+    if (!id.startsWith("spyglass_run:")) return;
+    await api.post(`/search/spyglass/runs/${encodeURIComponent(id)}/cancel`);
+    setRecentActivity((current) =>
+      current.map((item) => (item.id.toString() === id ? { ...item, status: "cancelled" } : item))
+    );
+  };
+
+  const visibleActivity = recentActivity.slice(0, activityExpanded ? 10 : 5);
+  const awaitingRequestedRun = Boolean(requestedRunId && requestedRunId !== runId);
+  const displayInitialized = initialized || awaitingRequestedRun;
+  const selectionHandoff = workflowSelection.handoff;
+  const selectionScopeMatchesHandoff = Boolean(
+    selectionHandoff &&
+    scope.scope?.length === selectionHandoff.items.length &&
+    selectionHandoff.items.every((item) => scope.scope?.includes(item.id))
+  );
+  const selectionScopeLabel = selectionScopeMatchesHandoff
+    ? selectionHandoff?.origin.label
+    : undefined;
 
   return (
     <PageWrapper>
@@ -122,7 +299,12 @@ export default function Spyglass() {
           open: (
             <>
               <Link to="/spyglass/history">
-                <ActionIcon color="gray" radius="lg" variant="light">
+                <ActionIcon
+                  aria-label="View Spyglass history"
+                  color="gray"
+                  radius="lg"
+                  variant="light"
+                >
                   <ClockCounterClockwiseIcon />
                 </ActionIcon>
               </Link>
@@ -153,7 +335,7 @@ export default function Spyglass() {
         <LeftSidebar.Collapsed>
           <Stack>
             <Link to="/spyglass/history">
-              <ActionIcon color="gray" variant="light" size="sm">
+              <ActionIcon aria-label="View Spyglass history" color="gray" variant="light" size="sm">
                 <ClockCounterClockwiseIcon />
               </ActionIcon>
             </Link>
@@ -161,8 +343,8 @@ export default function Spyglass() {
         </LeftSidebar.Collapsed>
       </LeftSidebar>
       <Content>
-        <div className={`${styles.spyglass} ${initialized ? styles.initialized : ""}`}>
-          {!initialized && (
+        <div className={`${styles.spyglass} ${displayInitialized ? styles.initialized : ""}`}>
+          {!displayInitialized && (
             <Group gap="xs" justify="center">
               <Title ta={"center"} className={`${styles.header}`} mb="lg">
                 <Trans>Spyglass</Trans>
@@ -182,12 +364,18 @@ export default function Spyglass() {
                       </Trans>
                     </Text>
                     <Text size="xs" c="dimmed">
+<<<<<<< HEAD
                       <Trans>
                         This feature will remain free during it's beta stage. Rate limits may apply
                         in future versions.
                       </Trans>
+=======
+                      This feature will remain free during its beta stage. Rate limits may apply in
+                      future versions.
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
                     </Text>
                     <ActionIcon
+                      aria-label="Send Spyglass feedback"
                       size="sm"
                       variant="light"
                       color="blue"
@@ -203,7 +391,181 @@ export default function Spyglass() {
             </Group>
           )}
 
-          <div className={`${styles.scrollableContent} ${initialized ? styles.initialized : ""}`}>
+          {!loading && !awaitingRequestedRun && (
+            <div className={styles.userInput}>
+              <div
+                className={`${styles.textboxContainer} ${initialized ? styles.initialized : ""}`}
+              >
+                <Textbox
+                  value={query}
+                  onSubmit={handleSubmit}
+                  onReset={startNewQuery}
+                  onChange={setQuery}
+                  placeholder={
+                    initialized ? "Ask a follow-up question..." : "Ask your thoughts anything..."
+                  }
+                  initialized={initialized}
+                  deepAnalysis={deepAnalysis}
+                  setDeepAnalysis={setDeepAnalysis}
+                  scope={scope}
+                  onScopeChange={setScope}
+                />
+              </div>
+              {(hasScope || Boolean(currentRabbithole)) && !initialized && (
+                <div className={styles.scope}>
+                  <Text fw="bold" c="dimmed" size="sm" mb="xs">
+                    FILTERS
+                  </Text>
+                  <ScopeDisplay
+                    onRemoveSelection={clearSelectionScope}
+                    selectionLabel={selectionScopeLabel}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          <div
+            className={`${styles.scrollableContent} ${displayInitialized ? styles.initialized : ""}`}
+          >
+            {awaitingRequestedRun && (
+              <Center py="xl">
+                <Loader color="gray" size="sm" />
+              </Center>
+            )}
+
+            {!displayInitialized && recentActivity.length > 0 && (
+              <Stack className={styles.activityShelf} gap={0} mt="lg">
+                <Group className={styles.activityHeader} justify="space-between">
+                  <Text c="dimmed" fw={600} size="xs">
+                    Recent
+                  </Text>
+                  <Group gap="xs">
+                    {activityExpanded && (
+                      <Button
+                        color="gray"
+                        leftSection={<CaretUpIcon />}
+                        onClick={() => setActivityExpanded(false)}
+                        size="compact-xs"
+                        variant="subtle"
+                      >
+                        Show less
+                      </Button>
+                    )}
+                    <Link to="/spyglass/history">
+                      <Button variant="subtle" color="gray" size="compact-xs">
+                        View all
+                      </Button>
+                    </Link>
+                  </Group>
+                </Group>
+
+                {visibleActivity.map((activity) => {
+                  const active = activity.status === "queued" || activity.status === "running";
+                  const completed = !activity.status || activity.status === "completed";
+                  const mode = activity.isDeepAnalysis ? "Deep Focus" : "Glimpse";
+                  return (
+                    <Group
+                      className={styles.activityRow}
+                      justify="space-between"
+                      key={activity.id.toString()}
+                      wrap="nowrap"
+                    >
+                      <Group className={styles.activitySummary} gap="xs" wrap="nowrap">
+                        <Text className={styles.activityQuery} fw={500} size="sm" lineClamp={1}>
+                          {activity.baseQuery}
+                        </Text>
+                        {completed && (
+                          <Text className={styles.activityMeta} size="xs">
+                            {mode}
+                          </Text>
+                        )}
+                        {completed ? (
+                          <Text className={styles.activityCompleteStatus} size="xs">
+                            Complete
+                          </Text>
+                        ) : (
+                          <Badge
+                            color={activityStatusColor(activity)}
+                            size="xs"
+                            variant={active ? "dot" : "light"}
+                          >
+                            {activityStatusLabel(activity)}
+                          </Badge>
+                        )}
+                        {!completed && (
+                          <Text className={styles.activityMeta} size="xs">
+                            {mode}
+                          </Text>
+                        )}
+                        <Text className={styles.activityTime} c="dimmed" size="xs">
+                          {formatDateTime(activity.createdAt)}
+                        </Text>
+                      </Group>
+                      <Group gap={2} wrap="nowrap">
+                        {active && (
+                          <Tooltip label="Cancel run">
+                            <ActionIcon
+                              aria-label={`Cancel run: ${activity.baseQuery}`}
+                              color="red"
+                              onClick={() => void cancelActivity(activity)}
+                              size="sm"
+                              variant="subtle"
+                            >
+                              <XIcon />
+                            </ActionIcon>
+                          </Tooltip>
+                        )}
+                        <Tooltip label={active ? "Resume run" : "Open result"}>
+                          <ActionIcon
+                            aria-label={`${active ? "Resume" : "Open"} run: ${activity.baseQuery}`}
+                            color="gray"
+                            onClick={() => openActivity(activity)}
+                            size="sm"
+                            variant="subtle"
+                          >
+                            <ArrowRightIcon />
+                          </ActionIcon>
+                        </Tooltip>
+                      </Group>
+                    </Group>
+                  );
+                })}
+
+                {recentActivity.length > 5 && !activityExpanded && (
+                  <Button
+                    className={styles.activityExpand}
+                    color="gray"
+                    leftSection={<CaretDownIcon />}
+                    onClick={() => setActivityExpanded(true)}
+                    size="compact-xs"
+                    variant="subtle"
+                  >
+                    {`Show ${Math.min(5, recentActivity.length - 5)} more`}
+                  </Button>
+                )}
+              </Stack>
+            )}
+
+            {initialized && (
+              <Button
+                className={styles.newQueryButton}
+                color="gray"
+                leftSection={<ArrowLeftIcon />}
+                onClick={startNewQuery}
+                size="compact-sm"
+                variant="subtle"
+              >
+                New query
+              </Button>
+            )}
+
+            {error && !loading && (
+              <Alert color="red" title="Could not complete this analysis" mb="md">
+                {error} You can edit your question and try again.
+              </Alert>
+            )}
+
             {showLoadingState && !showDeepFocusAnalysis && (
               <div className={styles.loadingState}>
                 <Title order={1} className={styles.loadingQuery}>
@@ -309,6 +671,14 @@ export default function Spyglass() {
               </div>
             )}
 
+            {loading && deepAnalysis && runId && (
+              <Group justify="center" mt="md">
+                <Button color="red" variant="subtle" size="xs" onClick={() => void cancel()}>
+                  Cancel Deep Focus
+                </Button>
+              </Group>
+            )}
+
             {deepAnalysis && overview && (
               <div className={styles.overviewDisplay}>
                 <DisplayOverview
@@ -337,6 +707,7 @@ export default function Spyglass() {
                 </div>
               )}
           </div>
+<<<<<<< HEAD
 
           {!loading && (
             <div className={`${styles.userInput}`}>
@@ -380,6 +751,8 @@ export default function Spyglass() {
               )}
             </div>
           )}
+=======
+>>>>>>> dbc6393673ec1b06aa8a23ecdd01967fe1e94466
         </div>
       </Content>
       <Nav />

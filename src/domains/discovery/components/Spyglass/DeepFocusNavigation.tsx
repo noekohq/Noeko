@@ -73,12 +73,12 @@ const DeepFocusNavigation: React.FC<IDeepFocusNavigationProps> = ({
   }, []);
 
   const handleSourceClick = (sourceId: string) => {
-    // Scroll to findings section
-    scrollToElement("deep-focus-findings");
+    const findingId = `finding-${sourceId}`;
+    scrollToElement(findingId);
 
     // Highlight specific card after scroll
     setTimeout(() => {
-      const card = document.getElementById(`finding-${sourceId}`);
+      const card = document.getElementById(findingId);
       if (card) {
         card.classList.add("highlight-pulse");
         setTimeout(() => {

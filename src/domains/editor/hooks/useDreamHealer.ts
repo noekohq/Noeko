@@ -33,9 +33,14 @@ export const useDreamHealer = (
         if (
           node.type.name === "dreamIdea" ||
           node.type.name === "dreamTask" ||
-          node.type.name === "dreamSource"
+          node.type.name === "dreamSource" ||
+          node.type.name === "dreamTransclusion"
         ) {
-          const id = node.attrs.ideaId || node.attrs.taskId || node.attrs.sourceId;
+          const id =
+            node.attrs.ideaId ||
+            node.attrs.taskId ||
+            node.attrs.sourceId ||
+            node.attrs.connectableId;
 
           if (id) {
             connectionIds.add(id);

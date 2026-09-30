@@ -1,6 +1,7 @@
 import { Duration, RecordId } from "surrealdb";
+import type { IEmbeddingMetadata } from "./embeddings";
 
-export type ITask = {
+export type ITask = IEmbeddingMetadata & {
   id: string | RecordId;
   description: string;
   scratchpad: string;

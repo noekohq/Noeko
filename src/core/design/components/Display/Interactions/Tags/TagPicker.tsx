@@ -18,6 +18,8 @@ interface TagPickerProps {
   omitIds?: string[];
   initialSuggestions?: ITag[];
   allowCreation?: boolean;
+  triggerLabel?: string;
+  fullWidth?: boolean;
 }
 
 export function TagPickerContent({
@@ -135,6 +137,8 @@ export function TagPicker({
   omitIds = [],
   initialSuggestions,
   allowCreation = true,
+  triggerLabel = "Add Tag",
+  fullWidth = false,
 }: TagPickerProps) {
   const { isMobile } = useLayout();
 
@@ -153,10 +157,11 @@ export function TagPicker({
           }
           onClick={toggle}
           size="md"
+          fullWidth={fullWidth}
         >
-          {opened ? "Cancel" : "Add Tag"}
+          {opened ? "Cancel" : triggerLabel}
         </PaperButton>
-        <PaperDrawer title="Add a tag" opened={opened} onClose={handleClose}>
+        <PaperDrawer title="Add a tag" opened={opened} onClose={handleClose} position="right">
           <TagPickerContent
             onSelectExisting={onSelectExisting}
             onCreateNew={onCreateNew}
@@ -188,8 +193,9 @@ export function TagPicker({
             }
             onClick={toggle}
             size="md"
+            fullWidth={fullWidth}
           >
-            {opened ? "Cancel" : "Add Tag"}
+            {opened ? "Cancel" : triggerLabel}
           </PaperButton>
         </div>
       </Popover.Target>

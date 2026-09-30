@@ -1,0 +1,21 @@
+.control.root {
+  padding: 4px;
+  border: 1px solid var(--mantine-color-dark-7);
+  border-radius: var(--mantine-radius-lg);
+  background: var(--mantine-color-dark-9);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--mantine-color-white) 4%, transparent);
+}
+
+.indicator {
+  border: 1px solid var(--mantine-color-dark-6);
+  border-radius: calc(var(--mantine-radius-lg) - 4px);
+  background: var(--mantine-color-dark-7);
+  box-shadow: var(--mantine-shadow-xs);
+}
+
+.label {
+  position: relative;
+  z-index: 1;
+  color: var(--mantine-color-text);
+  font-weight: 650;
+}

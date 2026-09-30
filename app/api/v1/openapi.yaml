@@ -1,0 +1,988 @@
+openapi: 3.1.0
+info:
+  title: Noeko Developer API
+  version: 0.1.0
+  summary: User-scoped automation API for Noeko
+  description: |
+    The implemented Noeko API for personal scripts, agents, and integrations.
+    Personal API credentials use explicit scopes. Browser session bearer tokens may
+    also call authenticated endpoints and are required to manage API credentials.
+servers:
+  - url: /api/v1
+    description: Current Noeko installation
+tags:
+  - name: Identity
+  - name: Credentials
+  - name: Ideas
+  - name: Webhooks
+security:
+  - apiCredential: []
+  - browserSession: []
+paths:
+  /:
+    get:
+      operationId: getApiRoot
+      summary: Inspect the API root
+      tags: [Identity]
+      responses:
+        "200":
+          description: API root response
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message:
+                    type: string
+                    example: "You've reached the Noeko Developer API :)"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+  /openapi.yaml:
+    get:
+      operationId: getOpenApiDocument
+      summary: Download this OpenAPI document
+      security: []
+      responses:
+        "200":
+          description: OpenAPI 3.1 YAML document
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/yaml:
+              schema:
+                type: string
+  /me:
+    get:
+      operationId: getCurrentUser
+      summary: Get the current credential owner
+      tags: [Identity]
+      x-required-scope: profile:read
+      responses:
+        "200":
+          description: Current user and granted scopes
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /credentials:
+    get:
+      operationId: listApiCredentials
+      summary: List personal API credentials
+      description: Requires a browser session. Secret hashes and full secrets are never returned.
+      tags: [Credentials]
+      security:
+        - browserSession: []
+      responses:
+        "200":
+          description: Credentials owned by the current user
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ApiCredential"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      operationId: createApiCredential
+      summary: Create a personal API credential
+      description: |
+        Requires a browser session. The `secret` is returned only in this response
+        and cannot be recovered later.
+      tags: [Credentials]
+      security:
+        - browserSession: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateApiCredential"
+      responses:
+        "201":
+          description: Credential created
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    allOf:
+                      - $ref: "#/components/schemas/ApiCredential"
+                      - type: object
+                        required: [secret]
+                        properties:
+                          secret:
+                            type: string
+                            writeOnly: true
+                            example: noeko_live_replace_with_secret
+        "400":
+          $ref: "#/components/responses/InvalidRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /credentials/{credentialId}:
+    parameters:
+      - $ref: "#/components/parameters/CredentialId"
+    delete:
+      operationId: revokeApiCredential
+      summary: Revoke a personal API credential
+      description: Requires a browser session. Revocation is immediate and cannot be undone.
+      tags: [Credentials]
+      security:
+        - browserSession: []
+      responses:
+        "204":
+          description: Credential revoked
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /ideas:
+    get:
+      operationId: listIdeas
+      summary: List accessible ideas
+      tags: [Ideas]
+      x-required-scope: ideas:read
+      parameters:
+        - name: limit
+          in: query
+          description: Number of ideas to return. Values are clamped to 1 through 100.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: start
+          in: query
+          description: Zero-based offset. This is an early contract and may be replaced by cursors.
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        "200":
+          description: Ideas ordered by most recently updated
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IdeaListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      operationId: createIdea
+      summary: Create a private idea
+      description: Embeddings and other derived data are processed asynchronously.
+      tags: [Ideas]
+      x-required-scope: ideas:write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IdeaInput"
+      responses:
+        "201":
+          description: Idea created
+          headers:
+            Location:
+              description: Relative URL of the created idea
+              schema:
+                type: string
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IdeaResponse"
+        "400":
+          $ref: "#/components/responses/InvalidRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /ideas/{ideaId}:
+    parameters:
+      - $ref: "#/components/parameters/IdeaId"
+    get:
+      operationId: getIdea
+      summary: Get an accessible idea
+      tags: [Ideas]
+      x-required-scope: ideas:read
+      responses:
+        "200":
+          description: Idea
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IdeaResponse"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      operationId: updateIdea
+      summary: Update an idea with editor access
+      tags: [Ideas]
+      x-required-scope: ideas:write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IdeaUpdate"
+      responses:
+        "200":
+          description: Updated idea
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IdeaResponse"
+        "400":
+          $ref: "#/components/responses/InvalidRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deleteIdea
+      summary: Delete an owned idea
+      tags: [Ideas]
+      x-required-scope: ideas:write
+      responses:
+        "204":
+          description: Idea deleted
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /webhooks:
+    get:
+      operationId: listWebhooks
+      summary: List webhook subscriptions
+      tags: [Webhooks]
+      x-required-scope: webhooks:read
+      responses:
+        "200":
+          description: Webhook subscriptions owned by the current user
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Webhook"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      operationId: createWebhook
+      summary: Create a webhook subscription
+      description: The signing `secret` is returned only in this response.
+      tags: [Webhooks]
+      x-required-scope: webhooks:write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebhookInput"
+      responses:
+        "201":
+          description: Webhook created
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    allOf:
+                      - $ref: "#/components/schemas/Webhook"
+                      - type: object
+                        required: [secret]
+                        properties:
+                          secret:
+                            type: string
+                            writeOnly: true
+                            example: whsec_replace_with_secret
+        "400":
+          $ref: "#/components/responses/InvalidRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /webhooks/{webhookId}:
+    parameters:
+      - $ref: "#/components/parameters/WebhookId"
+    get:
+      operationId: getWebhook
+      summary: Get a webhook subscription
+      tags: [Webhooks]
+      x-required-scope: webhooks:read
+      responses:
+        "200":
+          description: Webhook subscription
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Webhook"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      operationId: updateWebhook
+      summary: Update a webhook subscription
+      tags: [Webhooks]
+      x-required-scope: webhooks:write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebhookUpdate"
+      responses:
+        "200":
+          description: Updated webhook subscription
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Webhook"
+        "400":
+          $ref: "#/components/responses/InvalidRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deleteWebhook
+      summary: Delete a webhook subscription and its delivery records
+      tags: [Webhooks]
+      x-required-scope: webhooks:write
+      responses:
+        "204":
+          description: Webhook deleted
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /webhooks/{webhookId}/test:
+    parameters:
+      - $ref: "#/components/parameters/WebhookId"
+    post:
+      operationId: testWebhook
+      summary: Queue a test webhook event
+      tags: [Webhooks]
+      x-required-scope: webhooks:write
+      responses:
+        "202":
+          description: Test event accepted for asynchronous delivery
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/EventReference"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /webhooks/{webhookId}/deliveries:
+    parameters:
+      - $ref: "#/components/parameters/WebhookId"
+    get:
+      operationId: listWebhookDeliveries
+      summary: List recent delivery state for a webhook
+      tags: [Webhooks]
+      x-required-scope: webhooks:read
+      responses:
+        "200":
+          description: Up to 50 most recent deliveries
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/WebhookDelivery"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+webhooks:
+  ideaEvent:
+    post:
+      operationId: receiveNoekoEvent
+      summary: Example webhook receiver contract
+      description: |
+        Noeko sends at-least-once event deliveries to subscription URLs. Verify
+        `Webhook-Signature` against `<Webhook-Timestamp>.<raw request body>` before
+        parsing the JSON body. Any 2xx response acknowledges delivery.
+      parameters:
+        - name: Webhook-Id
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: Webhook-Event-Id
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: Webhook-Timestamp
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: Webhook-Signature
+          in: header
+          required: true
+          schema:
+            type: string
+            pattern: '^v1=[0-9a-f]{64}$'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainEvent"
+      responses:
+        "204":
+          description: Event acknowledged
+components:
+  securitySchemes:
+    apiCredential:
+      type: http
+      scheme: bearer
+      bearerFormat: Noeko API credential
+      description: Personal credential beginning with `noeko_live_`.
+    browserSession:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Browser access token. Required for credential-management endpoints.
+  headers:
+    RequestId:
+      description: Request correlation ID, generated unless supplied by the client.
+      schema:
+        type: string
+  parameters:
+    CredentialId:
+      name: credentialId
+      in: path
+      required: true
+      schema:
+        type: string
+    IdeaId:
+      name: ideaId
+      in: path
+      required: true
+      schema:
+        type: string
+    WebhookId:
+      name: webhookId
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    InvalidRequest:
+      description: Request input is invalid
+      headers:
+        X-Request-Id:
+          $ref: "#/components/headers/RequestId"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthenticated:
+      description: Bearer token is absent or invalid
+      headers:
+        X-Request-Id:
+          $ref: "#/components/headers/RequestId"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: Account is disabled or credential lacks the required scope
+      headers:
+        X-Request-Id:
+          $ref: "#/components/headers/RequestId"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: Resource does not exist or is not accessible
+      headers:
+        X-Request-Id:
+          $ref: "#/components/headers/RequestId"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    InternalError:
+      description: Operation failed unexpectedly
+      headers:
+        X-Request-Id:
+          $ref: "#/components/headers/RequestId"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+  schemas:
+    ApiScope:
+      type: string
+      enum:
+        - profile:read
+        - ideas:read
+        - ideas:write
+        - webhooks:read
+        - webhooks:write
+    ApiCredential:
+      type: object
+      required: [id, name, prefix, scopes, created_at]
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+          const: api_credential
+        name:
+          type: string
+        prefix:
+          type: string
+          description: Non-secret prefix used to identify the credential.
+        scopes:
+          type: array
+          items:
+            $ref: "#/components/schemas/ApiScope"
+        created_at:
+          type: string
+          format: date-time
+        last_used_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+        revoked_at:
+          type: string
+          format: date-time
+    CreateApiCredential:
+      type: object
+      additionalProperties: false
+      required: [name, scopes]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        scopes:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/ApiScope"
+        expires_at:
+          type: string
+          format: date-time
+    UserResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [id, object, email, first_name, last_name, scopes]
+          properties:
+            id:
+              type: string
+            object:
+              type: string
+              const: user
+            email:
+              type: string
+              format: email
+            first_name:
+              type: string
+            last_name:
+              type: string
+            scopes:
+              type: array
+              items:
+                oneOf:
+                  - $ref: "#/components/schemas/ApiScope"
+                  - type: string
+                    const: browser_session
+    IdeaInput:
+      type: object
+      additionalProperties: false
+      required: [title]
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 500
+        content:
+          type: string
+          default: ""
+          description: Rich HTML stored by the current editor implementation.
+    IdeaUpdate:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 500
+        content:
+          type: string
+    Idea:
+      type: object
+      required:
+        - id
+        - object
+        - title
+        - content
+        - content_format
+        - visibility
+        - created_at
+        - updated_at
+        - content_updated_at
+        - processing
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+          const: idea
+        title:
+          type: string
+        content:
+          type: string
+        content_format:
+          type: string
+          const: html
+        visibility:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        content_updated_at:
+          type: string
+          format: date-time
+        processing:
+          type: object
+          required: [status]
+          properties:
+            status:
+              type: string
+              enum: [pending, completed]
+    IdeaResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/Idea"
+    IdeaListResponse:
+      type: object
+      required: [data, page]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Idea"
+        page:
+          type: object
+          required: [has_more]
+          properties:
+            has_more:
+              type: boolean
+    WebhookEventType:
+      type: string
+      enum:
+        - idea.created
+        - idea.updated
+        - idea.deleted
+        - idea.processing.completed
+        - idea.processing.failed
+        - "*"
+    WebhookInput:
+      type: object
+      additionalProperties: false
+      required: [url, events]
+      properties:
+        url:
+          type: string
+          format: uri
+          description: HTTPS URL unless private-network webhooks are enabled by the administrator.
+        events:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/WebhookEventType"
+    WebhookUpdate:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        url:
+          type: string
+          format: uri
+        events:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/WebhookEventType"
+        enabled:
+          type: boolean
+    Webhook:
+      type: object
+      required:
+        - id
+        - object
+        - url
+        - events
+        - enabled
+        - consecutive_failures
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+          const: webhook
+        url:
+          type: string
+          format: uri
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/WebhookEventType"
+        enabled:
+          type: boolean
+        consecutive_failures:
+          type: integer
+          minimum: 0
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    WebhookDelivery:
+      type: object
+      required: [id, object, event_id, status, attempt, next_attempt_at, created_at]
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+          const: webhook_delivery
+        event_id:
+          type: string
+        status:
+          type: string
+          enum: [pending, delivering, succeeded, failed]
+        attempt:
+          type: integer
+          minimum: 0
+        next_attempt_at:
+          type: string
+          format: date-time
+        delivered_at:
+          type: string
+          format: date-time
+        response_status:
+          type: integer
+          minimum: 100
+          maximum: 599
+        error:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    EventReference:
+      type: object
+      required: [id, object]
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+          const: event
+    DomainEvent:
+      type: object
+      required: [id, object, type, version, occurred_at, user_id, actor, data]
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+          const: event
+        type:
+          type: string
+          enum:
+            - idea.created
+            - idea.updated
+            - idea.deleted
+            - idea.processing.completed
+            - idea.processing.failed
+            - webhook.test
+        version:
+          type: integer
+          const: 1
+        occurred_at:
+          type: string
+          format: date-time
+        user_id:
+          type: string
+        actor:
+          type: object
+          required: [type]
+          properties:
+            type:
+              type: string
+              enum: [interface, api_credential, import, system, collaborator]
+            id:
+              type: string
+        data:
+          type: object
+          required: [resource]
+          properties:
+            resource:
+              type: object
+              required: [id, object]
+              properties:
+                id:
+                  type: string
+                object:
+                  type: string
+          additionalProperties: true
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code]
+          properties:
+            type:
+              type: string
+              enum:
+                - authentication_error
+                - permission_error
+                - not_found
+                - invalid_request
+                - internal_error
+            code:
+              type: string
+            message:
+              type: string

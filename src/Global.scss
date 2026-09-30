@@ -222,7 +222,9 @@ td {
 }
 
 .mantine-Popover-dropdown {
-  z-index: var(--z-index-context-menu);
+  // Mantine applies its default popover z-index inline. The important flag is
+  // required for Noeko's shared layer scale to win over that inline default.
+  z-index: var(--z-index-context-menu) !important;
 
   animation: popoverIn 0.2s ease-in-out forwards;
 
@@ -235,7 +237,7 @@ td {
 }
 
 .mantine-Menu-dropdown {
-  z-index: var(--z-index-menu);
+  z-index: var(--z-index-menu) !important;
 
   animation: popoverIn 0.2s ease-in-out forwards;
 

@@ -1,0 +1,44 @@
+.viewer {
+  min-height: min(620px, 70vh);
+  display: flex;
+  flex-direction: column;
+}
+
+.stage {
+  min-height: min(540px, 62vh);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--mantine-spacing-lg);
+  background: #09090b;
+
+  video {
+    width: 100%;
+    max-height: min(500px, 58vh);
+    border-radius: var(--mantine-radius-lg);
+  }
+}
+
+.transcript {
+  padding: var(--mantine-spacing-xl);
+  border-top: 1px solid var(--mantine-color-default-border);
+}
+
+.eyebrow {
+  color: var(--mantine-color-dimmed);
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.transcriptContent {
+  max-width: 72ch;
+  margin-top: var(--mantine-spacing-sm);
+  white-space: pre-wrap;
+  line-height: 1.7;
+}
+
+.sourceHint {
+  padding: var(--mantine-spacing-md) var(--mantine-spacing-xl);
+  border-top: 1px solid var(--mantine-color-default-border);
+}

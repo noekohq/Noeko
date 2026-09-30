@@ -1,4 +1,4 @@
-@use '@core/design/styles/mixins.scss' as *;
+@use "@core/design/styles/mixins.scss" as *;
 
 /* Entry Animations */
 @keyframes slideToBottom {
@@ -82,10 +82,11 @@
 .spyglass {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   position: relative;
   box-sizing: border-box;
   height: calc(100%);
+  padding-top: clamp(10rem, 25vh, 22rem);
 
   &.initialized {
     display: flex;
@@ -93,6 +94,7 @@
     justify-content: flex-start;
     overflow: hidden;
     max-width: 100%;
+    padding-top: 0;
 
     @include desktop {
       max-width: 70vw;
@@ -100,6 +102,10 @@
     @include widescreen {
       max-width: 55vw;
     }
+  }
+
+  @include mobile {
+    padding-top: clamp(5rem, 14vh, 8rem);
   }
 }
 
@@ -112,6 +118,79 @@
   transition:
     opacity 0.2s ease-out,
     transform 0.2s ease-out;
+}
+
+.activityShelf {
+  width: 100%;
+  margin-inline: auto;
+
+  @include widescreen {
+    width: 80%;
+  }
+}
+
+.activityHeader {
+  min-height: 2rem;
+  padding-inline: var(--mantine-spacing-xs);
+}
+
+.activityRow {
+  min-height: 2.5rem;
+  padding: 0 var(--mantine-spacing-xs);
+  border-top: 1px solid color-mix(in srgb, var(--mantine-color-dimmed) 16%, transparent);
+}
+
+.activitySummary {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.activityQuery {
+  min-width: 0;
+  max-width: 45%;
+}
+
+.activityMeta {
+  color: color-mix(in srgb, var(--mantine-color-text) 45%, var(--mantine-color-dimmed));
+  font-weight: 500;
+}
+
+.activityCompleteStatus {
+  color: color-mix(in srgb, var(--mantine-color-dimmed) 70%, transparent);
+  font-weight: 500;
+}
+
+.activityMeta,
+.activityCompleteStatus,
+.activityTime {
+  white-space: nowrap;
+}
+
+.activityExpand {
+  align-self: flex-start;
+  margin-top: var(--mantine-spacing-xs);
+}
+
+.newQueryButton {
+  margin-bottom: var(--mantine-spacing-md);
+}
+
+@include mobile {
+  .activityShelf {
+    width: 100%;
+  }
+
+  .activityQuery {
+    max-width: none;
+    flex: 1;
+  }
+
+  .activityMeta,
+  .activityCompleteStatus,
+  .activityTime {
+    display: none;
+  }
 }
 
 .userInput {
@@ -135,6 +214,7 @@
 
     &.initialized {
       position: absolute;
+      z-index: 1;
       left: 0;
       right: 0;
       bottom: 0;
@@ -175,14 +255,15 @@
 }
 
 .scrollableContent {
+  flex-grow: 1;
+  overflow-y: auto;
+  scrollbar-width: none;
+  min-height: 0;
+  padding-bottom: 20vh;
+
   &.initialized {
     height: 100%;
-    flex-grow: 1;
-    overflow-y: auto;
-    scrollbar-width: none;
-    min-height: 0;
     padding-top: var(--mantine-spacing-md);
-    padding-bottom: 20vh;
     opacity: 0;
     animation: contentFadeIn 0.3s ease-out 0.1s forwards;
   }

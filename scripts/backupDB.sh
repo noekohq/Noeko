@@ -49,8 +49,8 @@ echo "[$(date)] Starting ${TYPE} backup..."
 
 # --- STEP 1: EXPORT (Container -> Shared Shelf) ---
 # We use the internal port 8000 since we are executing inside the docker network
-docker-compose exec -T surrealdb /surreal export \
-    --conn http://localhost:8000 \
+docker compose exec -T surrealdb /surreal export \
+    --endpoint http://127.0.0.1:8000 \
     --user "$DB_USER" \
     --pass "$DB_PASSWORD" \
     --namespace "$DB_NAMESPACE" \

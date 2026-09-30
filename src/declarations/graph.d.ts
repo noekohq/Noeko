@@ -8,6 +8,21 @@ import { IPublicTask, ITask } from "../../app/database/models/task";
 import { IExcerpt } from "../../shared/types/excerpt";
 import { IPublicUser } from "../../app/database/models/user";
 import { IShareAccess } from "../../app/database/models/share";
+import { IGraphSnapshotNode } from "../../shared/types/graph-snapshot";
+
+type INodePosition = {
+  x?: number;
+  y?: number;
+  vx?: number;
+  vy?: number;
+  fx?: number | null;
+  fy?: number | null;
+};
+
+export type IGraphSummaryNode = IGraphSnapshotNode &
+  INodePosition & {
+    summary: true;
+  };
 
 export type IIdeaNode = ISafeIdea & {
   type: "idea";
@@ -122,7 +137,8 @@ export type INode =
   | ITaskNode
   | IExcerptNode
   | ISourceNode
-  | IUserNode;
+  | IUserNode
+  | IGraphSummaryNode;
 
 export type IGraph = {
   nodes: INode[];

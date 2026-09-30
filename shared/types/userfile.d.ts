@@ -1,6 +1,8 @@
 import { RecordId } from "surrealdb";
 import { ISource } from "./source";
 
+export type { ISourceableMimeType } from "../files/mimeTypes";
+
 export type IUserFile = {
   id: RecordId;
   s3key: string;
@@ -11,8 +13,6 @@ export type IUserFile = {
   createdAt: Date;
   updatedAt: Date;
 };
-
-export type ISourceableMimeType = "application/pdf";
 
 export type IUserFileForm = Omit<IUserFile, "id" | "createdAt" | "updatedAt">;
 

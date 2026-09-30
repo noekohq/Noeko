@@ -1,27 +1,70 @@
-@use '@core/design/styles/mixins.scss' as *;
+@use "@core/design/styles/mixins.scss" as *;
 
 .fileView {
-  padding-block-start: var(--layout-spacing);
+  max-width: 1180px;
+  margin-inline: auto;
+  padding-block-start: calc(var(--layout-spacing) * 1.5);
   padding-block-end: 10vh;
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-xl);
+}
+
+.fileHeader {
   display: flex;
   flex-direction: column;
   gap: var(--mantine-spacing-md);
 }
 
-.viewer {
-  max-height: 90vh;
-  overflow-y: scroll;
+.titleBlock {
+  min-width: 0;
 
-  /* &.leftOpen {
-        @include desktop {
-            padding-left: var(--sidebar-width);
-        }
-    }
+  h2 {
+    overflow-wrap: anywhere;
+    line-height: 1.1;
+  }
+}
 
-    &.rightOpen {
-        @include desktop {
-            padding-right: var(--sidebar-width);
-        }
-    } */
+.viewerSurface {
+  min-height: min(620px, 70vh);
+  overflow: hidden;
+  background: color-mix(in srgb, var(--mantine-color-body) 94%, var(--mantine-color-default-hover));
+  box-shadow: var(--mantine-shadow-sm);
+}
+
+.viewerLoading,
+.unsupportedViewer {
+  display: flex;
+  min-height: min(620px, 70vh);
+  align-items: center;
+  justify-content: center;
+}
+
+.unsupportedViewer {
+  flex-direction: column;
+  gap: var(--mantine-spacing-md);
+  color: var(--mantine-color-dimmed);
+}
+
+.detailsCard {
+  background: var(--mantine-color-default-hover);
+}
+
+.contextFileName,
+.contextValue {
+  overflow-wrap: anywhere;
+}
+
+@include mobile {
+  .fileView {
+    gap: var(--mantine-spacing-lg);
+    padding-block-start: var(--mantine-spacing-md);
+  }
+
+  .viewerSurface,
+  .viewerLoading,
+  .unsupportedViewer {
+    min-height: 480px;
+  }
 }

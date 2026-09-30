@@ -1,40 +1,40 @@
 import { GoogleGenAI } from "@google/genai";
 import type { EmbeddingsProvider } from "..";
-import {
-  default_embeddings_dimension,
-  default_google_embeddings_model,
-  max_embeddable_characters,
-} from "../../../settings";
+import { default_google_embeddings_model, max_embeddable_characters } from "../../../settings";
 import { getLevenshteinDistance } from "../../../utils/strings";
 import { sleep } from "bun";
-
-const API_KEY = process.env.GEMINI_API_KEY;
-const GCP_PROJECT_ID = process.env.GCP_PROJECT_ID;
-const GCP_LOCATION = process.env.GCP_LOCATION || "us-west1";
-
-const { GOOGLE_EMBEDDING_MODEL_NAME } = process.env;
+import type { EmbeddingsConfig } from "../config";
+import { toPersistedVector } from "../vectors";
 
 export default class GoogleProvider implements EmbeddingsProvider {
+  readonly provider = "google";
   private client: GoogleGenAI;
-  private _model: string;
+  readonly model: string;
+  readonly dimension: number;
+  readonly supportsBatch = false;
   private lastRequestTimestamp: number = 0;
   private readonly minIntervalMs: number;
   private readonly rpm: number;
-  private readonly maxCharacters: number = max_embeddable_characters;
+  readonly maxInputCharacters: number = max_embeddable_characters;
 
-  constructor() {
+  constructor(config: EmbeddingsConfig) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    const gcpProjectId = process.env.GCP_PROJECT_ID;
+    const gcpLocation = process.env.GCP_LOCATION || "us-west1";
     this.client = new GoogleGenAI(
-      GCP_PROJECT_ID
+      gcpProjectId
         ? {
             vertexai: true,
-            project: GCP_PROJECT_ID,
-            location: GCP_LOCATION,
+            project: gcpProjectId,
+            location: gcpLocation,
           }
         : {
-            apiKey: API_KEY,
+            apiKey,
           }
     );
-    this._model = GOOGLE_EMBEDDING_MODEL_NAME ?? default_google_embeddings_model;
+    this.model =
+      process.env.GOOGLE_EMBEDDING_MODEL_NAME ?? config.model ?? default_google_embeddings_model;
+    this.dimension = config.dimension;
     const rpmEnv = process.env.EMBEDDINGS_RPM_LIMIT || "60"; // Default to 60 RPM
     this.rpm = parseInt(rpmEnv, 10);
     if (isNaN(this.rpm) || this.rpm <= 0) {
@@ -46,12 +46,8 @@ export default class GoogleProvider implements EmbeddingsProvider {
     this.minIntervalMs = (60 * 1000) / this.rpm;
   }
 
-  get model() {
-    return this._model;
-  }
-
   async truncate(content: string): Promise<string> {
-    return content.slice(0, this.maxCharacters);
+    return content.slice(0, this.maxInputCharacters);
   }
 
   async checkModelAvailability() {
@@ -104,7 +100,7 @@ export default class GoogleProvider implements EmbeddingsProvider {
         model: this.model,
         contents: [truncatedContent],
         config: {
-          outputDimensionality: default_embeddings_dimension,
+          outputDimensionality: this.dimension,
         },
       });
       const endTime = Date.now();
@@ -116,7 +112,7 @@ export default class GoogleProvider implements EmbeddingsProvider {
       if (!result) {
         throw new Error("No embeddings vector provided by model!");
       }
-      return result;
+      return toPersistedVector(result, this.dimension, `${this.provider}:${this.model}`);
     } catch (error) {
       console.error("Error embedding content: ", error);
       return null;
@@ -186,7 +182,7 @@ export default class GoogleProvider implements EmbeddingsProvider {
     }
   }
 
-  async getEmptyEmbeddings(dimension = default_embeddings_dimension): Promise<number[]> {
-    return Array(dimension).fill(0);
+  async getEmptyEmbeddings(dimension = this.dimension): Promise<number[]> {
+    return toPersistedVector(Array(dimension).fill(0), dimension, `${this.provider}:empty`);
   }
 }

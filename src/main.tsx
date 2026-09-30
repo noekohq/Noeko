@@ -108,12 +108,17 @@ function WrapTheme({ children }: IWrapThemeProps) {
     ui: {
       theme: {
         resolved: { get: theme },
+        scheme: { actual: actualScheme },
       },
     },
   } = useSettings();
 
   return (
-    <MantineProvider theme={theme.override} defaultColorScheme={theme.scheme}>
+    <MantineProvider
+      theme={theme.override}
+      defaultColorScheme={actualScheme}
+      forceColorScheme={actualScheme}
+    >
       <ModalsProvider>
         <Notifications position="bottom-right" />
         {children}

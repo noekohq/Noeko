@@ -1,11 +1,19 @@
-import { createContext, useCallback, useContext, useState, useEffect, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  ReactNode,
+} from "react";
 import { IThemeOption, IThemeResolved, IThemeSpec } from "@/declarations/themes";
-import { ResolveTheme } from "@core/design/themes";
+import { applyCSS, ResolveTheme } from "@core/design/themes";
 import { isDarkScheme } from "@core/utils/dom";
 import { IUserSettings } from "../../shared/types/user";
 import { useAuth } from "@domains/identity/contexts/AuthContext";
 import { api } from "@infrastructure/api/client";
-import { dynamicActivate } from "@/i18n";
+import { dynamicActivate, locales } from "@/i18n";
 
 const LOCAL_STORAGE_KEYS = {
   override: "themeOverride",
@@ -13,13 +21,22 @@ const LOCAL_STORAGE_KEYS = {
   bodyFont: "themeBodyFont",
   headingFont: "themeHeadingFont",
   language: "language",
+  graphicsMode: "noeko:graphics-mode",
 };
+
+type IGraphicsMode = "full" | "reduced";
 
 type ISettingsContext = {
   ui: {
     language: {
       get: string;
       set: (l: string) => void;
+    };
+    graphics: {
+      mode: {
+        get: IGraphicsMode;
+        set: (mode: IGraphicsMode) => void;
+      };
     };
     theme: {
       override: {
@@ -38,7 +55,7 @@ type ISettingsContext = {
       scheme: {
         get: IThemeSpec["scheme"];
         set: (s: IThemeSpec["scheme"]) => void;
-        actual: IThemeSpec["scheme"];
+        actual: Exclude<IThemeSpec["scheme"], "auto">;
       };
       resolved: {
         get: IThemeResolved;
@@ -50,13 +67,30 @@ type ISettingsContext = {
   };
 };
 
-function getInitialState<T>(key: string, defaultValue: T): T {
+const THEME_OPTIONS: readonly IThemeSpec["override"][] = [
+  "noeko",
+  "basalt",
+  "nord",
+  "pinkLady",
+  "vaporwave",
+  "river",
+  "dracula",
+  "paper",
+];
+const THEME_SCHEMES: readonly IThemeSpec["scheme"][] = ["auto", "light", "dark"];
+const THEME_FONTS: readonly IThemeSpec["bodyFont"][] = ["sans-serif", "serif"];
+const GRAPHICS_MODES: readonly IGraphicsMode[] = ["full", "reduced"];
+
+function getInitialState<T extends string>(
+  key: string,
+  defaultValue: T,
+  validValues: readonly T[]
+): T {
   if (typeof window !== "undefined" && window.localStorage) {
     try {
       const storedValue = localStorage.getItem(key);
-      if (storedValue !== null) {
-        return storedValue as unknown as T;
-      }
+      if (storedValue !== null && validValues.includes(storedValue as T)) return storedValue as T;
+      if (storedValue !== null) localStorage.removeItem(key);
     } catch (error) {
       console.warn(`Error reading '${key}' from localStorage:`, error);
     }
@@ -69,6 +103,12 @@ const SettingsContext = createContext<ISettingsContext>({
     language: {
       get: "en",
       set: () => {},
+    },
+    graphics: {
+      mode: {
+        get: "full",
+        set: () => {},
+      },
     },
     theme: {
       override: {
@@ -104,25 +144,58 @@ const SettingsContext = createContext<ISettingsContext>({
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const { user, reload } = useAuth();
 
-  const [override, setOverride] = useState<IThemeSpec["override"]>(() =>
-    getInitialState(LOCAL_STORAGE_KEYS.override, "noeko")
-  );
+  const [override, setOverride] = useState<IThemeSpec["override"]>(() => {
+    const storedOverride = getInitialState(LOCAL_STORAGE_KEYS.override, "noeko", [
+      ...THEME_OPTIONS,
+      "silicon",
+      "onyx",
+    ]);
+    return storedOverride === "silicon" || storedOverride === "onyx" ? "basalt" : storedOverride;
+  });
   const [scheme, setScheme] = useState<IThemeSpec["scheme"]>(() =>
-    getInitialState(LOCAL_STORAGE_KEYS.scheme, "auto")
+    getInitialState(LOCAL_STORAGE_KEYS.scheme, "auto", THEME_SCHEMES)
   );
   const [bodyFont, setBodyFont] = useState<IThemeSpec["bodyFont"]>(() =>
-    getInitialState(LOCAL_STORAGE_KEYS.bodyFont, "sans-serif")
+    getInitialState(LOCAL_STORAGE_KEYS.bodyFont, "sans-serif", THEME_FONTS)
   );
   const [headingFont, setHeadingFont] = useState<IThemeSpec["headingFont"]>(() =>
-    getInitialState(LOCAL_STORAGE_KEYS.headingFont, "sans-serif")
+    getInitialState(LOCAL_STORAGE_KEYS.headingFont, "sans-serif", THEME_FONTS)
   );
   const [language, setLanguage] = useState<string>(() =>
-    getInitialState(LOCAL_STORAGE_KEYS.language, "en")
+    getInitialState(LOCAL_STORAGE_KEYS.language, "en", Object.keys(locales))
+  );
+  const [graphicsMode, setGraphicsMode] = useState<IGraphicsMode>(() =>
+    getInitialState(LOCAL_STORAGE_KEYS.graphicsMode, "full", GRAPHICS_MODES)
   );
 
   useEffect(() => {
     console.log("Language changed: ", language);
   }, [language]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEYS.graphicsMode, graphicsMode);
+    } catch (error) {
+      console.warn(`Error saving '${LOCAL_STORAGE_KEYS.graphicsMode}' to localStorage:`, error);
+    }
+  }, [graphicsMode]);
+
+  useLayoutEffect(() => {
+    document.documentElement.dataset.graphicsMode = graphicsMode;
+  }, [graphicsMode]);
+
+  useEffect(() => {
+    const handleGraphicsModeStorage = (event: StorageEvent) => {
+      if (event.key !== LOCAL_STORAGE_KEYS.graphicsMode) return;
+      const nextMode = GRAPHICS_MODES.includes(event.newValue as IGraphicsMode)
+        ? (event.newValue as IGraphicsMode)
+        : "full";
+      setGraphicsMode(nextMode);
+    };
+
+    window.addEventListener("storage", handleGraphicsModeStorage);
+    return () => window.removeEventListener("storage", handleGraphicsModeStorage);
+  }, []);
 
   useEffect(() => {
     try {
@@ -180,8 +253,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     dynamicActivate(language);
   }, [language]);
 
-  const resolvedTheme = useCallback(
-    (): IThemeResolved =>
+  const resolvedTheme = useMemo(
+    () =>
       ResolveTheme({
         override,
         scheme,
@@ -190,6 +263,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       }),
     [override, scheme, bodyFont, headingFont]
   );
+
+  useLayoutEffect(() => {
+    applyCSS(resolvedTheme.applicator);
+  }, [resolvedTheme]);
 
   const setUserSetting: ISettingsContext["user"]["setSetting"] = async (setting, value) => {
     try {
@@ -216,6 +293,12 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
               setLanguage(l);
             },
           },
+          graphics: {
+            mode: {
+              get: graphicsMode,
+              set: setGraphicsMode,
+            },
+          },
           theme: {
             override: {
               get: override,
@@ -235,7 +318,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
               set: setHeadingFont,
             },
             resolved: {
-              get: resolvedTheme(),
+              get: resolvedTheme,
             },
           },
         },

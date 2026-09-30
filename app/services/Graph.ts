@@ -13,6 +13,7 @@ import { IRabbithole, IRabbitholeInclusion } from "../../shared/types/rabbithole
 import { Search } from "./Search";
 import { averageEmbeddings, weightedAverage } from "../utils/math";
 import { getEmbedder } from "../ai/embeddings/embeddings";
+import { toPersistedVector } from "../ai/embeddings/vectors";
 import { User } from "../database/models/user";
 import { IPublicUser } from "../../shared/types/user";
 import {
@@ -29,6 +30,12 @@ import {
   ILoadedConstellation,
   IConstellationLoader,
 } from "../../shared/types/constellation";
+import {
+  ISemanticNeighbor,
+  ISemanticNeighborhoodRequest,
+  ISemanticNeighborhoodResult,
+} from "../../shared/types/semantic-neighborhood";
+import type { IGraphShare } from "../../shared/types/shared-landscape";
 
 // Re-export types from shared/types for backward compatibility
 export type {
@@ -48,6 +55,7 @@ export type {
 
 export default class GraphService {
   static readonly SUGGESTION_WEIGHT = 0.25;
+  static readonly RECOMMENDATION_THRESHOLD = 0.3;
 
   constructor() {}
 
@@ -437,6 +445,11 @@ export default class GraphService {
     if (!embeddingVector) {
       throw new Error("No embedding vector");
     }
+    const queryEmbedding = toPersistedVector(
+      embeddingVector,
+      getEmbedder().dimension,
+      "tag suggestion embedding"
+    );
 
     const threshold = 0.4;
     const limit = 10;
@@ -465,7 +478,7 @@ export default class GraphService {
     const [dbResults] = await db.query<(ITag & { distance: number })[][]>(query, {
       userId: new StringRecordId(userId),
       connectableId: new StringRecordId(thingId),
-      embedding: embeddingVector,
+      embedding: queryEmbedding,
     });
 
     if (!dbResults) {
@@ -527,6 +540,11 @@ export default class GraphService {
     if (!embedding) {
       throw new Error("Couldn't get embedding vector for connectable");
     }
+    const queryEmbedding = toPersistedVector(
+      embedding,
+      getEmbedder().dimension,
+      "similar connectable embedding"
+    );
 
     const threshold = Number.parseFloat(String(options.threshold ?? 0.45));
     if (!Number.isFinite(threshold) || threshold < -1.0 || threshold > 1.0) {
@@ -537,7 +555,7 @@ export default class GraphService {
       `<-owns<-(user WHERE id = $userId)`,
       `id != $sourceId`,
       `id NOT IN <->connected->(?)`,
-      `embeddings <|${limit}, ${candidates}|> $embedding`,
+      `embeddings <|${candidates}, ${candidates * 2}|> $embedding`,
     ];
 
     if (options.rabbitholeId) {
@@ -585,7 +603,7 @@ export default class GraphService {
     ): Promise<ISimilarConnectable[]> => {
       const [results] = await db.query<[T[]]>(query, {
         userId: new StringRecordId(userId),
-        embedding: embedding,
+        embedding: queryEmbedding,
         ...(options.rabbitholeId && {
           rabbitholeId: new StringRecordId(options.rabbitholeId),
         }),
@@ -627,7 +645,7 @@ export default class GraphService {
       return 1;
     });
 
-    const final = sorted;
+    const final = sorted.slice(0, limit);
 
     return final as IConnectable[];
   }
@@ -660,8 +678,13 @@ export default class GraphService {
       connectableEmbedding || null,
       centroidEmbedding || null
     );
+    const queryEmbedding = toPersistedVector(
+      embedding,
+      getEmbedder().dimension,
+      "weighted similar connectable embedding"
+    );
 
-    const threshold = Number.parseFloat(String(options.threshold ?? 0.45));
+    const threshold = Number.parseFloat(String(options.threshold ?? this.RECOMMENDATION_THRESHOLD));
     if (!Number.isFinite(threshold) || threshold < -1.0 || threshold > 1.0) {
       throw new Error("Invalid similarity threshold provided.");
     }
@@ -672,7 +695,7 @@ export default class GraphService {
       `id NOT IN <->connected->(?)`,
     ];
 
-    subqueryWhere.push(`embeddings <|${limit}, ${candidates}|> $embedding`);
+    subqueryWhere.push(`embeddings <|${candidates}, ${candidates * 2}|> $embedding`);
 
     if (options.rabbitholeId) {
       subqueryWhere.push(`
@@ -719,7 +742,7 @@ export default class GraphService {
     ): Promise<ISimilarConnectable[]> => {
       const [results] = await db.query<[T[]]>(query, {
         userId: new StringRecordId(userId),
-        embedding: embedding,
+        embedding: queryEmbedding,
         ...(options.rabbitholeId && {
           rabbitholeId: new StringRecordId(options.rabbitholeId),
         }),
@@ -761,7 +784,7 @@ export default class GraphService {
       return 1;
     });
 
-    const final = sorted;
+    const final = sorted.slice(0, limit);
 
     return final as IConnectable[];
   }
@@ -788,6 +811,11 @@ export default class GraphService {
     if (!embedding) {
       throw new Error("No embedding vector provided for connectable");
     }
+    const queryEmbedding = toPersistedVector(
+      embedding,
+      getEmbedder().dimension,
+      "provided similar connectable embedding"
+    );
 
     const threshold = Number.parseFloat(String(options.threshold ?? 0.45));
     if (!Number.isFinite(threshold) || threshold < -1.0 || threshold > 1.0) {
@@ -801,7 +829,7 @@ export default class GraphService {
     }
 
     if (!options.rabbitholeId) {
-      subqueryWhere.push(`embeddings <|${limit}, ${candidates}|> $embedding`);
+      subqueryWhere.push(`embeddings <|${candidates}, ${candidates * 2}|> $embedding`);
     }
 
     if (options.rabbitholeId) {
@@ -846,7 +874,7 @@ export default class GraphService {
     ): Promise<ISimilarConnectable[]> => {
       const [results] = await db.query<[T[]]>(query, {
         userId: new StringRecordId(userId),
-        embedding: embedding,
+        embedding: queryEmbedding,
         ...(options.rabbitholeId && {
           rabbitholeId: new StringRecordId(options.rabbitholeId),
         }),
@@ -887,9 +915,144 @@ export default class GraphService {
       return 1;
     });
 
-    const final = sorted;
+    const final = sorted.slice(0, limit);
 
     return final as IConnectable[];
+  }
+
+  /**
+   * Returns raw cosine neighbors for an accessible connectable. Unlike connection
+   * recommendations, this does not blend the source embedding with its graph neighborhood.
+   */
+  static async getSemanticNeighborhood(
+    userId: string | RecordId,
+    thingId: string | RecordId,
+    options: ISemanticNeighborhoodRequest = {}
+  ): Promise<ISemanticNeighborhoodResult> {
+    const db = await getDatabase();
+    if (!db) throw new Error("Database not initialized");
+
+    if (!this.isConnectable(thingId)) {
+      throw new Error("Semantic neighborhoods require a connectable source");
+    }
+
+    const hasAccess = await User.checkHasAccess(userId, thingId);
+    if (!hasAccess) {
+      throw new Error("User does not have access to semantic neighborhood source");
+    }
+
+    const requestedLimit = options.limit ?? 12;
+    if (!Number.isInteger(requestedLimit) || requestedLimit < 1) {
+      throw new Error("Invalid semantic neighborhood limit provided.");
+    }
+    const limit = Math.min(50, requestedLimit);
+    const threshold = Number(options.threshold ?? 0.45);
+    if (!Number.isFinite(threshold) || threshold < -1 || threshold > 1) {
+      throw new Error("Invalid similarity threshold provided.");
+    }
+
+    const embedding = await this.getConnectableEmbedding(thingId);
+    if (!embedding?.length) {
+      return {
+        sourceId: thingId.toString(),
+        status: "embedding_unavailable",
+        reason: "missing_embedding",
+        neighbors: [],
+      };
+    }
+
+    const queryEmbedding = toPersistedVector(
+      embedding,
+      getEmbedder().dimension,
+      "semantic neighborhood embedding"
+    );
+    const filters = options.filters ?? {};
+    const filterBuilder = new FilterQueryBuilder().applyFilters(filters, userId);
+    const { where: filterWhere, params: filterParams } = filterBuilder.build();
+    if (filters.scope?.length) {
+      filterWhere.push(`id IN $scope`);
+      filterParams.scope = filters.scope.map((id) => new StringRecordId(id));
+    }
+    const candidates = Math.max(300, limit * 10);
+    const sourceId = new StringRecordId(thingId);
+    const [connectionRecords] = await db.query<[IConnection[]]>(
+      `SELECT in, out FROM connected WHERE in = $sourceId OR out = $sourceId`,
+      { sourceId }
+    );
+    const connectedIds = new Set(
+      (connectionRecords ?? []).map((connection) =>
+        connection.in.toString() === sourceId.toString()
+          ? connection.out.toString()
+          : connection.in.toString()
+      )
+    );
+    const baseWhere = [
+      ...filterWhere,
+      `id != $sourceId`,
+      `embeddings <|${candidates}, ${candidates * 2}|> $embedding`,
+    ];
+
+    if (options.includeConnected === false) {
+      baseWhere.push(`id NOT IN $connectedIds`);
+    }
+
+    const tableQuery = (table: IConnectableTypes) => {
+      const tableWhere: string[] = [];
+      if (table === "task") {
+        tableWhere.push(`completedAt = NULL`);
+      }
+      if (table === "excerpt") {
+        tableWhere.push(`references != $sourceId`);
+      }
+
+      return `
+        SELECT * FROM (
+          SELECT
+            *,
+            vector::similarity::cosine(embeddings, $embedding) AS similarity
+          OMIT embeddings
+          FROM ${table}
+          WHERE ${[...baseWhere, ...tableWhere].join(" AND ")}
+        )
+        WHERE similarity >= $threshold AND similarity != NaN
+        ORDER BY similarity DESC
+        LIMIT ${limit};
+      `;
+    };
+
+    const queryParams = {
+      ...filterParams,
+      sourceId,
+      embedding: queryEmbedding,
+      threshold,
+      connectedIds: [...connectedIds].map((id) => new StringRecordId(id)),
+    };
+    const getOfType = async (type: IConnectableTypes): Promise<ISimilarConnectable[]> => {
+      const [results] = await db.query<[ISimilarConnectable[]]>(tableQuery(type), queryParams);
+      return results.map((item) => ({ ...item, type })) as ISimilarConnectable[];
+    };
+
+    const [ideas, sources, tasks, excerpts] = await Promise.all([
+      getOfType("idea"),
+      getOfType("source"),
+      getOfType("task"),
+      getOfType("excerpt"),
+    ]);
+    const neighbors = [...ideas, ...sources, ...tasks, ...excerpts]
+      .sort((a, b) => b.similarity - a.similarity)
+      .slice(0, limit)
+      .map(
+        (item): ISemanticNeighbor => ({
+          ...item,
+          explicitlyConnected: connectedIds.has(item.id.toString()),
+        })
+      );
+
+    return {
+      sourceId: thingId.toString(),
+      status: "ready",
+      neighbors,
+    };
   }
 
   public static async getConnectableEmbedding(thingId: string | RecordId) {
@@ -927,14 +1090,7 @@ export default class GraphService {
       return undefined;
     }
     const result = await db.query<[number[][]]>(
-      `
-        SELECT VALUE
-          embeddings
-        FROM (
-          SELECT VALUE
-              <->connected->(?).{embeddings}
-          FROM ONLY $connectableId
-        )`,
+      `SELECT VALUE <->connected->(?).embeddings FROM ONLY $connectableId;`,
       {
         connectableId: new StringRecordId(thingId),
       }
@@ -944,12 +1100,19 @@ export default class GraphService {
       throw new Error("Failed to get embeddings");
     }
 
-    const [vectors] = result;
-    if (!vectors.length) {
+    const [vectors = []] = result;
+    const expectedDimension = getEmbedder().dimension;
+    const validVectors = vectors.filter(
+      (vector) =>
+        Array.isArray(vector) &&
+        vector.length === expectedDimension &&
+        vector.every(Number.isFinite)
+    );
+    if (!validVectors.length) {
       return undefined;
     }
 
-    const centroid = averageEmbeddings(vectors);
+    const centroid = averageEmbeddings(validVectors);
     return centroid;
   }
 
@@ -957,29 +1120,25 @@ export default class GraphService {
     connectableEmbedding: number[] | null,
     averageEmbedding: number[] | null
   ): Promise<number[]> {
-    const emb = getEmbedder();
-    try {
-      if (!connectableEmbedding?.length && !averageEmbedding?.length) {
-        throw new Error("Can't get weighted vector of tag with no embeddings");
-      }
+    if (!connectableEmbedding?.length && !averageEmbedding?.length) {
+      throw new Error("Can't get a weighted recommendation vector without embeddings");
+    }
 
-      if (connectableEmbedding?.length && averageEmbedding?.length) {
-        return weightedAverage(connectableEmbedding, averageEmbedding, this.SUGGESTION_WEIGHT);
-      }
-
-      if (!connectableEmbedding?.length && averageEmbedding?.length) {
-        return averageEmbedding;
-      }
-
-      if (!averageEmbedding?.length && connectableEmbedding?.length) {
+    if (connectableEmbedding?.length && averageEmbedding?.length) {
+      if (connectableEmbedding.length !== averageEmbedding.length) {
+        console.warn(
+          `Ignoring an invalid connection centroid with dimension ${averageEmbedding.length}; expected ${connectableEmbedding.length}.`
+        );
         return connectableEmbedding;
       }
-
-      return emb.getEmptyEmbeddings();
-    } catch (error) {
-      console.error("Error getting weighted vector: ", error);
-      return emb.getEmptyEmbeddings();
+      return weightedAverage(connectableEmbedding, averageEmbedding, this.SUGGESTION_WEIGHT);
     }
+
+    if (averageEmbedding?.length) {
+      return averageEmbedding;
+    }
+
+    return connectableEmbedding!;
   }
 
   public static async getConnectableContent(thingId: string | RecordId) {}
@@ -1030,20 +1189,18 @@ export default class GraphService {
         return results;
       };
 
-      const ideas = (await getOfType<IIdea & { type: "idea" }>(ideaQuery)).map((i) => ({
-        ...i,
-        type: "idea" as const,
-      }));
-      const sources = (await getOfType<ISource & { type: "source" }>(sourceQuery)).map((s) => ({
-        ...s,
-        type: "source" as const,
-      }));
-      const tasks = (await getOfType<ITask & { type: "task" }>(taskQuery)).map((t) => ({
-        ...t,
-        type: "task" as const,
-      }));
-      const excerpts = (await getOfType<IExcerpt & { type: "excerpt" }>(excerptQuery)).map((t) => ({
-        ...t,
+      const [ideasResult, sourcesResult, tasksResult, excerptsResult] = await Promise.all([
+        getOfType<IIdea & { type: "idea" }>(ideaQuery),
+        getOfType<ISource & { type: "source" }>(sourceQuery),
+        getOfType<ITask & { type: "task" }>(taskQuery),
+        getOfType<IExcerpt & { type: "excerpt" }>(excerptQuery),
+      ]);
+
+      const ideas = ideasResult.map((idea) => ({ ...idea, type: "idea" as const }));
+      const sources = sourcesResult.map((source) => ({ ...source, type: "source" as const }));
+      const tasks = tasksResult.map((task) => ({ ...task, type: "task" as const }));
+      const excerpts = excerptsResult.map((excerpt) => ({
+        ...excerpt,
         type: "excerpt" as const,
       }));
 
@@ -1240,7 +1397,7 @@ export default class GraphService {
           (
             in IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
             out IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
-            in IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId)
+            in IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId) OR
             out IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId)
           )
           `);
@@ -1293,26 +1450,15 @@ export default class GraphService {
       if (filters?.rabbithole) {
         queryWhere.push(`in = $rabbitholeId`);
       }
-
-      const builder = new FilterQueryBuilder();
-
-      if (filters) {
-        builder.applyFilters(filters);
-      }
-
-      const { where: filterWhere, params: filterParams } = builder.build();
-
-      const tableWhere: string[] = [];
       const query = `
           SELECT
             *
           FROM includes
-          WHERE ${[...queryWhere, ...filterWhere, ...tableWhere].join(" AND ")}
+          WHERE ${queryWhere.join(" AND ")}
           `;
 
       const [results] = await db.query<[IRabbitholeInclusion[]]>(query, {
         userId: new StringRecordId(userId),
-        ...filterParams,
         ...(filters?.rabbithole && {
           rabbitholeId: new StringRecordId(filters.rabbithole),
         }),
@@ -1538,37 +1684,129 @@ export default class GraphService {
     }
   }
 
-  public static async getUserFriends(userId: StringRecordId): Promise<IPublicUser[] | undefined> {
+  public static async getUserFriends(
+    userId: StringRecordId,
+    filters?: IGraphFilters
+  ): Promise<IPublicUser[] | undefined> {
     try {
-      const friends = await User.getFriends(userId.toString());
-      return (friends || []) as unknown as IPublicUser[];
+      const shares = await this.getUserShares(userId, filters);
+      return shares ? this.getShareCounterparts(shares) : undefined;
     } catch (error) {
       console.error("Error getting user friends: ", error);
       return undefined;
     }
   }
 
+  public static getShareCounterparts(shares: IGraphShare[]): IPublicUser[] {
+    const counterparts = new Map<string, IPublicUser>();
+    for (const share of shares) {
+      counterparts.set(share.counterpart.id.toString(), share.counterpart);
+    }
+    return [...counterparts.values()];
+  }
+
   public static async getUserShares(
     userId: StringRecordId,
     filters?: IGraphFilters
-  ): Promise<IShare[] | undefined> {
+  ): Promise<IGraphShare[] | undefined> {
     try {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized");
 
-      // We want shares where either the user is the recipient OR the owner
-      // AND optionally filter by rabbithole or date if needed.
-      // For now, let's keep it simple and get all shares involving the user.
+      const scopeWhere: string[] = [];
+      const params: Record<string, unknown> = {
+        userId: new StringRecordId(userId),
+      };
+
+      for (const field of ["createdAt", "updatedAt", "viewedAt"] as const) {
+        const range = filters?.date?.[field];
+        const hasValidAfter = range?.after && !Number.isNaN(new Date(range.after).getTime());
+        const hasValidBefore = range?.before && !Number.isNaN(new Date(range.before).getTime());
+        if (range?.after) {
+          const after = new Date(range.after);
+          if (!Number.isNaN(after.getTime())) {
+            scopeWhere.push(`in.${field} ${hasValidBefore ? ">=" : ">"} $${field}After`);
+            params[`${field}After`] = after;
+          }
+        }
+        if (range?.before) {
+          const before = new Date(range.before);
+          if (!Number.isNaN(before.getTime())) {
+            scopeWhere.push(`in.${field} ${hasValidAfter ? "<=" : "<"} $${field}Before`);
+            params[`${field}Before`] = before;
+          }
+        }
+      }
+
+      if (filters?.rabbithole) {
+        scopeWhere.push(`
+          (
+            in IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
+            in IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId)
+          )
+        `);
+        params.rabbitholeId = new StringRecordId(filters.rabbithole);
+      }
+
+      if (filters?.tags?.set.length) {
+        params.tagSet = filters.tags.set.map((id) => new StringRecordId(id));
+        if (filters.tags.behavior === "and") {
+          scopeWhere.push(
+            `array::len(in<-describes<-(tag WHERE id IN $tagSet)) = array::len($tagSet)`
+          );
+        } else {
+          scopeWhere.push(`array::len(in<-describes<-(tag WHERE id IN $tagSet)) > 0`);
+        }
+      }
+
+      if (filters?.scope?.length) {
+        scopeWhere.push(`in IN $scope`);
+        params.scope = filters.scope.map((id) => new StringRecordId(id));
+      }
+
+      type ShareQueryResult = IShare & {
+        owner: IPublicUser | null;
+        recipient: IPublicUser | null;
+      };
+
       const query = `
-        SELECT * FROM shared_with
-        WHERE out = $userId OR in<-owns.in CONTAINS $userId
+        SELECT
+          *,
+          (in<-owns<-user)[0].{ id, createdAt, firstName, lastName } AS owner,
+          out.{ id, createdAt, firstName, lastName } AS recipient
+        FROM shared_with
+        WHERE
+          (out = $userId OR in<-owns.in CONTAINS $userId)
+          ${scopeWhere.length ? `AND ${scopeWhere.join(" AND ")}` : ""}
       `;
 
-      const [results] = await db.query<[IShare[]]>(query, {
-        userId: new StringRecordId(userId),
-      });
+      const [results] = await db.query<[ShareQueryResult[]]>(query, params);
 
-      return results || [];
+      return (results || []).flatMap((share): IGraphShare[] => {
+        const rawIn = share.in.toString();
+        const rawOut = share.out.toString();
+        const direction = rawOut === userId.toString() ? "incoming" : "outgoing";
+        const counterpart = direction === "incoming" ? share.owner : share.recipient;
+
+        if (!counterpart) {
+          return [];
+        }
+
+        return [
+          {
+            id: share.id.toString(),
+            in: rawIn,
+            out: counterpart.id.toString(),
+            accessLevel: share.accessLevel,
+            direction,
+            counterpart,
+            database: {
+              in: rawIn,
+              out: rawOut,
+            },
+          },
+        ];
+      });
     } catch (error) {
       console.error("Error getting user shares: ", error);
       return undefined;
@@ -1646,6 +1884,7 @@ export class ConstellationLoader {
   public async load(loader: IConstellationLoader): Promise<ILoadedConstellation | undefined> {
     try {
       const promises: Promise<Partial<ILoadedConstellation>>[] = [];
+      let scopedGraphShares: IGraphShare[] | undefined;
       if (loader.things) {
         promises.push(this.connectables().then((res) => ({ things: res })));
       }
@@ -1667,15 +1906,51 @@ export class ConstellationLoader {
       if (loader.references) {
         promises.push(this.references().then((res) => ({ references: res })));
       }
-      if (loader.friends) {
-        promises.push(this.friends().then((res) => ({ friends: res })));
-      }
-      if (loader.shares) {
-        promises.push(this.shares().then((res) => ({ shares: res })));
+      if (loader.friends || loader.shares) {
+        promises.push(
+          this.shares().then((shares) => {
+            scopedGraphShares = shares;
+            return {
+              ...(loader.shares && { shares }),
+              friends: shares ? GraphService.getShareCounterparts(shares) : undefined,
+            };
+          })
+        );
       }
 
       const results = await Promise.all(promises);
       const loaded: Partial<ILoadedConstellation> = Object.assign({}, ...results);
+
+      const loadedNodeIds = new Set(
+        [
+          ...(loaded.things || []),
+          ...(loaded.rabbitholes || []),
+          ...(loaded.tags || []),
+          ...(loaded.friends || []),
+        ].map((node) => node.id.toString())
+      );
+
+      if (loadedNodeIds.size > 0) {
+        const hasLoadedEndpoints = (relationship: { in: unknown; out: unknown }) =>
+          loadedNodeIds.has(String(relationship.in)) && loadedNodeIds.has(String(relationship.out));
+
+        loaded.connections = loaded.connections?.filter(hasLoadedEndpoints);
+        loaded.inclusions = loaded.inclusions?.filter(hasLoadedEndpoints);
+        loaded.descriptions = loaded.descriptions?.filter(hasLoadedEndpoints);
+        loaded.references = loaded.references?.filter(hasLoadedEndpoints);
+        const sharesWithLoadedItems = scopedGraphShares?.filter(hasLoadedEndpoints);
+        if (loader.shares) {
+          loaded.shares = sharesWithLoadedItems;
+        }
+        if (loader.friends || loader.shares) {
+          const counterpartIds = new Set(
+            (sharesWithLoadedItems || []).map((share) => share.out.toString())
+          );
+          loaded.friends = loaded.friends?.filter((friend) =>
+            counterpartIds.has(friend.id.toString())
+          );
+        }
+      }
 
       return loaded;
     } catch (error) {
@@ -1751,7 +2026,7 @@ export class ConstellationLoader {
 
   public async descriptions(): Promise<ITagDescriptionRelationship[] | undefined> {
     try {
-      const descriptions = await GraphService.getUserDescriptions(this.userId);
+      const descriptions = await GraphService.getUserDescriptions(this.userId, this.filters);
       if (!descriptions) {
         throw new Error("Couldn't get descriptions");
       }
@@ -1764,7 +2039,7 @@ export class ConstellationLoader {
 
   public async references(): Promise<IVirtualExcerptReference[] | undefined> {
     try {
-      const references = await GraphService.getUserReferences(this.userId);
+      const references = await GraphService.getUserReferences(this.userId, this.filters);
       if (!references) {
         throw new Error("Couldn't get references");
       }
@@ -1777,7 +2052,7 @@ export class ConstellationLoader {
 
   public async friends(): Promise<IPublicUser[] | undefined> {
     try {
-      const friends = await GraphService.getUserFriends(this.userId);
+      const friends = await GraphService.getUserFriends(this.userId, this.filters);
       if (!friends) {
         throw new Error("Couldn't get friends");
       }
@@ -1788,7 +2063,7 @@ export class ConstellationLoader {
     }
   }
 
-  public async shares(): Promise<IShare[] | undefined> {
+  public async shares(): Promise<IGraphShare[] | undefined> {
     try {
       const shares = await GraphService.getUserShares(this.userId, this.filters);
       if (!shares) {

@@ -2,6 +2,8 @@ import { RecordId, StringRecordId } from "surrealdb";
 import { ISource } from "./source";
 import { getDatabase } from "../db";
 import { getEmbedder } from "../../ai/embeddings/embeddings";
+import { buildReadyEmbeddingUpdate, isEmbeddingCurrent } from "../../ai/embeddings/lifecycle";
+import RabbitholeRecommendations from "../../services/RabbitholeRecommendations";
 import { PdfHighlightAnnoObject, Rect, PdfAnnotationSubtype } from "@embedpdf/models";
 import {
   IExcerpt,
@@ -208,15 +210,36 @@ export default class Excerpt {
       const updater: Partial<IExcerptCreator> = {
         updatedAt: new Date(),
       };
-      if (updates.note) {
+      if ("note" in updates) {
         updater.note = updates.note;
       }
-      if (updates.sourceText) {
+      if ("sourceText" in updates) {
         updater.sourceText = updates.sourceText;
       }
       if (updates.embeddings) {
         updater.embeddings = updates.embeddings;
         updater.embeddingsUpdatedAt = new Date();
+      }
+      if ("embeddingsUpdatedAt" in updates) {
+        updater.embeddingsUpdatedAt = updates.embeddingsUpdatedAt;
+      }
+      if ("embeddingsProvider" in updates) {
+        updater.embeddingsProvider = updates.embeddingsProvider;
+      }
+      if ("embeddingsModel" in updates) {
+        updater.embeddingsModel = updates.embeddingsModel;
+      }
+      if ("embeddingsDimension" in updates) {
+        updater.embeddingsDimension = updates.embeddingsDimension;
+      }
+      if ("embeddingsContentHash" in updates) {
+        updater.embeddingsContentHash = updates.embeddingsContentHash;
+      }
+      if ("embeddingsStatus" in updates) {
+        updater.embeddingsStatus = updates.embeddingsStatus;
+      }
+      if ("embeddingsError" in updates) {
+        updater.embeddingsError = updates.embeddingsError;
       }
       const update = await db.merge<IExcerpt, Partial<IExcerptCreator>>(
         new StringRecordId(excerptId),
@@ -319,15 +342,20 @@ export default class Excerpt {
         ---
         ${excerpt.note}
         `;
+      if (isEmbeddingCurrent(excerpt, embedder, embeddable)) {
+        return excerpt;
+      }
       console.info("Loading embedding vector for content: ", excerpt.note.slice(0, 124));
       const embedding = await embedder.embedContent(embeddable);
       if (!embedding) {
         throw new Error("No embedding generated");
       }
       const updated = await this.update(excerpt.id, {
-        embeddings: embedding,
-        embeddingsUpdatedAt: new Date(),
+        ...buildReadyEmbeddingUpdate(embedder, embeddable, embedding),
       });
+      if (updated) {
+        await RabbitholeRecommendations.scheduleEvaluation(excerptId);
+      }
       return updated;
     } catch (error) {
       console.error("Error loading excerpt embeddings: ", excerptId, error);

@@ -1,7 +1,49 @@
 .viewtag {
   overflow-y: scroll;
   scrollbar-width: none;
+  padding-top: var(--mantine-spacing-md);
   padding-bottom: 10vh;
+}
+
+.tagHeader {
+  padding-bottom: var(--mantine-spacing-xl);
+  border-bottom: 1px solid var(--mantine-color-dark-7);
+}
+
+.eyebrow {
+  color: var(--mantine-color-dark-4);
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.tagTitle {
+  line-height: 1;
+  letter-spacing: -0.035em;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.tagDescription {
+  max-width: 680px;
+}
+
+.metadata {
+  border: 1px solid var(--mantine-color-dark-8);
+}
+
+.emptyState {
+  min-height: 150px;
+  padding: var(--mantine-spacing-xl);
+  border: 1px dashed var(--mantine-color-dark-7);
+  border-radius: var(--mantine-radius-lg);
+  color: var(--mantine-color-dark-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--mantine-spacing-md);
+  text-align: left;
 }
 
 .constellationContainer {

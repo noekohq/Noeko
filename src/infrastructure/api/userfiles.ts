@@ -9,15 +9,24 @@ export interface UploadCallbacks {
   onSuccess?: (data: any) => void;
   onError?: (error: string) => void;
 }
-export const uploadFileSmart = async (file: File, callbacks: UploadCallbacks) => {
-  const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+export interface UploadOptions {
+  maxSizeBytes?: number;
+}
+
+export const uploadFileSmart = async (
+  file: File,
+  callbacks: UploadCallbacks,
+  options: UploadOptions = {}
+) => {
+  const maxSizeBytes = options.maxSizeBytes ?? 10 * 1024 * 1024;
   const STALL_TIMEOUT_MS = 30000; // 30 Seconds of silence = failure
 
-  if (file.size > MAX_SIZE) {
+  if (file.size > maxSizeBytes) {
+    const maxSizeMb = Math.floor(maxSizeBytes / (1024 * 1024));
     if (callbacks.onError) {
-      callbacks.onError?.("File is too large. Max size is 10MB.");
+      callbacks.onError?.(`File is too large. Max size is ${maxSizeMb}MB.`);
     } else {
-      window.alert("File is too large. Max size is 10MB.");
+      window.alert(`File is too large. Max size is ${maxSizeMb}MB.`);
     }
     return;
   }
@@ -80,6 +89,18 @@ export const getFileDownloadLink = async (fileId: string | RecordId) => {
   }
 };
 
+export const getFileTextContent = async (fileId: string | RecordId) => {
+  try {
+    const response = await api.get(`/files/${fileId.toString()}/stream`, {
+      responseType: "text",
+    });
+    return response.data as string;
+  } catch (error) {
+    console.error("Error getting file text: ", fileId);
+    return undefined;
+  }
+};
+
 export const handleFileDownload = async (file: IUserFile) => {
   try {
     const fileId = file.id.toString();
@@ -120,8 +141,10 @@ export const linkFileToConnectable = async (fileId: string, connectableId: strin
       connectableId: connectableId,
     });
     console.info(`Linked file ${fileId} to ${connectableId}`);
+    return true;
   } catch (error) {
     console.error("Failed to link file to connectable:", error);
+    return false;
   }
 };
 

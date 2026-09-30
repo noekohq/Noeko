@@ -6,20 +6,13 @@ import { getFromReq } from "../utils/requests";
 import { User } from "../database/models/user";
 import { ISafeUser } from "../../shared/types/user";
 import Authorization from "../services/Authorization";
+import { SUPPORTED_FILE_MIME_TYPES } from "../../shared/files/mimeTypes";
 
 const router = Router();
 
 // const storage = multer.memoryStorage();
 
-const allowedMimeTypes = [
-  "image/jpeg",
-  "image/png",
-  "image/gif",
-  "image/webp",
-  "application/pdf",
-  "text/plain",
-  "text/markdown",
-];
+const allowedMimeTypes = new Set<string>(SUPPORTED_FILE_MIME_TYPES);
 
 router.post("/", checkToken, disallowDisabled, (req, res) => {
   const busboy = Busboy({ headers: req.headers });
@@ -27,9 +20,10 @@ router.post("/", checkToken, disallowDisabled, (req, res) => {
 
   busboy.on("file", async (fieldname, fileStream, info) => {
     const { filename, mimeType } = info;
+    const normalizedMimeType = mimeType.toLowerCase().split(";", 1)[0].trim();
     fileProcessed = true;
 
-    if (!allowedMimeTypes.includes(mimeType)) {
+    if (!allowedMimeTypes.has(normalizedMimeType)) {
       fileStream.resume();
       return res.status(400).json({ error: "Invalid file type." });
     }
@@ -41,7 +35,7 @@ router.post("/", checkToken, disallowDisabled, (req, res) => {
         return res.status(401).json({ error: "Unauthorized" });
       }
 
-      const result = await UserFile.streamCreate(user.id, fileStream, filename, mimeType);
+      const result = await UserFile.streamCreate(user.id, fileStream, filename, normalizedMimeType);
 
       if (!result) {
         return res.status(500).json({ error: "Internal Server Error", message: "Upload failed." });
