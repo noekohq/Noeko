@@ -256,7 +256,7 @@ export const getNodeTitle = (node: INode): string | undefined => {
     return node.displayName;
   }
   if (node.type === "excerpt") {
-    return node.sourceText.slice(0, 124) + "...";
+    return node.sourceText?.slice(0, 124) + "...";
   }
   if (node.type === "user") {
     return `${node.firstName} ${node.lastName}`;
