@@ -358,7 +358,7 @@ function JumpBackIn() {
   }, [sortField]);
 
   const firstIdea = allIdeas?.[0];
-  const rest = firstIdea ? allIdeas.slice(1, allIdeas.length) : allIdeas;
+  const rest = firstIdea ? allIdeas?.slice(1, allIdeas.length) : allIdeas;
 
   return (
     <div className={styles.think}>
