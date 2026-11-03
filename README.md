@@ -105,7 +105,7 @@ Noeko is currently in Beta, and working consistently toward a stable release. To
 | 📚 Sources | Upload PDFs and other external materials for research and study | Active Development |
 | 🧩 Web Extension | Capture and retrieve materials wherever you are on the web | Planned |
 | 🔌 API | Interact programmatically with your Noeko server | Planned |
-| 🎙️ Voice Notes | Capture knowledge through audio recordings | Planned |
+| 🎙️ Voice Notes | Capture knowledge through audio recordings | Beta |
 
 Features not discussed here are either too early to detail, or not planned. 
 
